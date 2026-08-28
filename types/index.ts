@@ -6,6 +6,8 @@ export type SendStatus = "done" | "pending" | "cancel";
 
 export type PaymentMethod = "bkash" | "nagad" | "others";
 
+export type StatusLogType = "payment" | "send";
+
 export type AuditAction =
   | "CREATE_COIN_REQUEST"
   | "UPDATE_COIN_REQUEST"
@@ -39,6 +41,16 @@ export interface CoinRequest {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CoinRequestStatusLog {
+  id: string;
+  coin_request_id: string;
+  user_id: string;
+  status_type: StatusLogType;
+  old_status: string | null;
+  new_status: string;
+  created_at: string;
 }
 
 export interface AuditLog {

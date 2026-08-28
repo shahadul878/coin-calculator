@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { normalizePaymentFields } from "@/lib/validations";
 import { logAudit } from "./audit.service";
+import {
+  getCoinRequestStatusLogs,
+  logCoinStatusChanges,
+} from "./status-log.service";
+import { collectStatusChanges } from "@/lib/utils/status-log";
 import type { CoinRequest, PaginatedResponse, PaymentMethod } from "@/types";
 import type { CoinRequestInput } from "@/lib/validations";
 
@@ -146,9 +151,20 @@ export async function createCoinRequest(
 
   if (error) throw error;
 
+  const statusChanges = collectStatusChanges(
+    { payment_status: input.payment_status, send_status: input.send_status ?? "pending" },
+    {
+      payment_status: input.payment_status,
+      send_status: input.send_status ?? "pending",
+    },
+    true
+  );
+  await logCoinStatusChanges(data.id, userId, statusChanges);
+
   await logAudit(userId, "CREATE_COIN_REQUEST", "coin_request", data.id, {
     request_id: input.request_id,
     payment_status: input.payment_status,
+    send_status: input.send_status ?? "pending",
   });
 
   return mapCoinRequest(data);
@@ -211,7 +227,24 @@ export async function updateCoinRequest(
 
   if (error) throw error;
 
-  await logAudit(userId, "UPDATE_COIN_REQUEST", "coin_request", id);
+  const statusChanges = collectStatusChanges(existing, {
+    payment_status: merged.payment_status,
+    send_status: merged.send_status,
+  });
+  await logCoinStatusChanges(id, userId, statusChanges);
+
+  await logAudit(userId, "UPDATE_COIN_REQUEST", "coin_request", id, {
+    request_id: merged.request_id,
+    ...(statusChanges.length > 0
+      ? {
+          status_changes: statusChanges.map((change) => ({
+            type: change.statusType,
+            from: change.oldStatus,
+            to: change.newStatus,
+          })),
+        }
+      : {}),
+  });
 
   return mapCoinRequest(data);
 }
@@ -263,3 +296,5 @@ export async function duplicateCoinRequest(
     notes: existing.notes,
   });
 }
+
+export { getCoinRequestStatusLogs };

@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/permissions";
-import { getCoinRequest } from "@/lib/services/coin-request.service";
+import { getCoinRequest, getCoinRequestStatusLogs } from "@/lib/services/coin-request.service";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { CoinRequestForm } from "@/components/coin-requests/coin-request-form";
+import { CoinRequestStatusLogPanel } from "@/components/coin-requests/coin-request-status-log";
 import { StatusBadge } from "@/components/coin-requests/status-badge";
 import { SendStatusBadge } from "@/components/coin-requests/send-status-badge";
 import { formatPaymentMethod } from "@/components/coin-requests/payment-method-select";
@@ -28,6 +29,8 @@ export default async function CoinRequestDetailPage({
 
   if (!request) notFound();
 
+  const statusLogs = await getCoinRequestStatusLogs(id, user.id);
+
   if (edit === "true") {
     return (
       <div>
@@ -42,7 +45,7 @@ export default async function CoinRequestDetailPage({
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title={`Request #${request.request_id}`} />
       <Card className="max-w-lg">
         <CardContent className="space-y-4 pt-6">
@@ -94,6 +97,7 @@ export default async function CoinRequestDetailPage({
           </div>
         </CardContent>
       </Card>
+      <CoinRequestStatusLogPanel logs={statusLogs} />
     </div>
   );
 }
