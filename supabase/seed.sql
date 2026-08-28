@@ -1,6 +1,12 @@
 -- Seed file: optional demo data
 -- Do not run in production. Use only for local development testing.
 --
+-- Preferred: run the Node seed script (200 demo coin requests)
+--   npm run seed:demo -- --reset
+--
+-- Optional env:
+--   DEMO_USER_EMAIL=your@email.com
+--
 -- To create an admin user:
 -- 1. Register via the app
 -- 2. Run: UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
