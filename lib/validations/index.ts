@@ -99,20 +99,7 @@ export const coinRequestUpdateSchema = coinRequestBaseSchema
     }
   });
 
-export const calculationSchema = z.object({
-  coin_quantity: z.coerce.number().positive("Coin quantity must be > 0"),
-  price_per_coin: z.coerce.number().min(0, "Price per coin must be >= 0"),
-  discount: z.coerce.number().min(0, "Discount must be >= 0"),
-  additional_charge: z.coerce
-    .number()
-    .min(0, "Additional charge must be >= 0"),
-  notes: z.string().max(1000).nullable().optional(),
-});
-
-export const calculationUpdateSchema = calculationSchema.partial();
-
 export type CoinRequestInput = z.infer<typeof coinRequestSchema>;
-export type CalculationInput = z.infer<typeof calculationSchema>;
 
 export function normalizePaymentFields(
   data: Partial<CoinRequestInput>

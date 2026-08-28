@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Calculator,
-  BookOpen,
   Coins,
   FileText,
   User,
@@ -13,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  Plus,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,8 +20,6 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/calculator", label: "Calculator", icon: Calculator },
-  { href: "/dashboard/calculations", label: "Calculations", icon: BookOpen },
   { href: "/dashboard/coin-requests", label: "Coin Requests", icon: Coins },
   { href: "/dashboard/reports", label: "Reports", icon: FileText },
   { href: "/dashboard/profile", label: "Profile", icon: User },
@@ -53,7 +50,7 @@ export function MobileDrawer() {
           />
           <aside className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-lg">
             <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
-              <span className="text-lg font-semibold">Coin Calculator</span>
+              <span className="text-lg font-semibold">Coin Requests</span>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
@@ -82,7 +79,13 @@ export function MobileDrawer() {
                 );
               })}
             </nav>
-            <div className="border-t border-slate-200 p-4">
+            <div className="space-y-2 border-t border-slate-200 p-4">
+              <Link href="/dashboard/coin-requests/new" onClick={() => setOpen(false)}>
+                <Button className="w-full gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Request
+                </Button>
+              </Link>
               <form action={logoutAction}>
                 <Button variant="ghost" className="w-full justify-start gap-3" type="submit">
                   <LogOut className="h-4 w-4" />

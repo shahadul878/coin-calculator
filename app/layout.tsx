@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Coin Calculator",
-  description: "Digital calculation notebook and coin request management",
+  title: "Coin Requests",
+  description: "Coin request management system",
 };
 
 export default function RootLayout({

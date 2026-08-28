@@ -1,20 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateTotals } from "@/lib/utils/calculations";
 import { coinRequestSchema } from "@/lib/validations";
-
-describe("calculateTotals", () => {
-  it("computes subtotal and grand total correctly", () => {
-    const result = calculateTotals(100, 10, 50, 25);
-    expect(result.subtotal).toBe(1000);
-    expect(result.grand_total).toBe(975);
-  });
-
-  it("handles decimal precision", () => {
-    const result = calculateTotals(3, 0.1, 0, 0);
-    expect(result.subtotal).toBe(0.3);
-    expect(result.grand_total).toBe(0.3);
-  });
-});
 
 describe("coinRequestSchema", () => {
   it("requires txn_id and payment_method when paid", () => {
@@ -24,6 +9,7 @@ describe("coinRequestSchema", () => {
       price: 100,
       coin_amount: 50,
       payment_status: "paid",
+      send_status: "pending",
     });
     expect(result.success).toBe(false);
   });
@@ -35,6 +21,7 @@ describe("coinRequestSchema", () => {
       price: 100,
       coin_amount: 50,
       payment_status: "paid",
+      send_status: "done",
       payment_method: "bkash",
       txn_id: "ABC123",
     });
@@ -48,6 +35,7 @@ describe("coinRequestSchema", () => {
       price: 100,
       coin_amount: 50,
       payment_status: "due",
+      send_status: "pending",
     });
     expect(result.success).toBe(true);
   });
@@ -59,6 +47,7 @@ describe("coinRequestSchema", () => {
       price: 100,
       coin_amount: 50,
       payment_status: "partial",
+      send_status: "pending",
       payment_method: "others",
       txn_id: "XYZ789",
     });

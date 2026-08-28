@@ -32,7 +32,7 @@ export function RegisterForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Create account</CardTitle>
-        <CardDescription>Register for Coin Calculator</CardDescription>
+        <CardDescription>Register for Coin Requests</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={handleSubmit} className="space-y-4">

@@ -4,13 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Calculator,
-  BookOpen,
   Coins,
   FileText,
   User,
   Settings,
   LogOut,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/lib/actions/auth";
@@ -18,8 +17,6 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/calculator", label: "Calculator", icon: Calculator },
-  { href: "/dashboard/calculations", label: "Calculations", icon: BookOpen },
   { href: "/dashboard/coin-requests", label: "Coin Requests", icon: Coins },
   { href: "/dashboard/reports", label: "Reports", icon: FileText },
   { href: "/dashboard/profile", label: "Profile", icon: User },
@@ -33,7 +30,7 @@ export function Sidebar() {
     <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
       <div className="flex h-16 items-center border-b border-slate-200 px-6">
         <Link href="/dashboard" className="text-lg font-semibold text-slate-900">
-          Coin Calculator
+          Coin Requests
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-4">
@@ -59,7 +56,13 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-slate-200 p-4">
+      <div className="space-y-2 border-t border-slate-200 p-4">
+        <Link href="/dashboard/coin-requests/new">
+          <Button className="w-full gap-2">
+            <Plus className="h-4 w-4" />
+            New Request
+          </Button>
+        </Link>
         <form action={logoutAction}>
           <Button variant="ghost" className="w-full justify-start gap-3" type="submit">
             <LogOut className="h-4 w-4" />

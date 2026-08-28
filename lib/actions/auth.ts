@@ -22,7 +22,7 @@ export async function loginAction(formData: FormData) {
     await logAudit(data.user.id, "LOGIN");
   }
 
-  redirect("/dashboard");
+  redirect("/dashboard/coin-requests");
 }
 
 export async function registerAction(formData: FormData) {

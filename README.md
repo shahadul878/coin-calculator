@@ -1,6 +1,6 @@
-# Coin Calculator
+# Coin Requests
 
-A production-ready full-stack web application for digital calculation notebooks and coin request management.
+A production-ready full-stack web application for coin request management.
 
 ## Stack
 
@@ -13,9 +13,8 @@ A production-ready full-stack web application for digital calculation notebooks 
 
 - User authentication (register, login, logout, password reset)
 - Dashboard with live stats from Supabase
-- Calculator with decimal-safe arithmetic
-- Calculation notebook (save, edit, delete, duplicate, search)
 - Coin request management with payment status (Paid/Due/Partial)
+- Coin send status (Done/Pending/Cancel)
 - Payment methods: Bkash, Nagad, Others
 - Transaction ID tracking for paid/partial requests
 - Server-side pagination, search, and filters
@@ -58,9 +57,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### 3. Supabase setup
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Run the migration in `supabase/migrations/001_initial_schema.sql`:
+2. Run migrations in `supabase/migrations/` in order (001, 002, 003, 004):
    - Open Supabase Dashboard → SQL Editor
-   - Paste and run the migration file contents
+   - Paste and run each migration file contents
 3. Enable Email auth in Authentication → Providers
 4. Add redirect URLs:
    - `http://localhost:3000/reset-password`
@@ -85,7 +84,6 @@ The initial migration creates:
 
 - `profiles` — user profiles with admin role
 - `coin_requests` — coin request records
-- `calculations` — saved calculations
 - `audit_logs` — action audit trail
 - RLS policies for user isolation and admin access
 
@@ -95,7 +93,7 @@ The initial migration creates:
 
 ```bash
 git add .
-git commit -m "Initial Coin Calculator app"
+git commit -m "Coin Requests app"
 git push origin main
 ```
 
@@ -118,7 +116,6 @@ Test these routes in production:
 
 - `/login`
 - `/dashboard`
-- `/dashboard/calculator`
 - `/dashboard/coin-requests`
 
 ## Scripts

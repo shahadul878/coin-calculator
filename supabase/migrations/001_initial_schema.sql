@@ -27,27 +27,12 @@ CREATE TABLE IF NOT EXISTS coin_requests (
   UNIQUE (user_id, request_id)
 );
 
--- Calculations table
-CREATE TABLE IF NOT EXISTS calculations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  coin_quantity NUMERIC(15, 4) NOT NULL CHECK (coin_quantity > 0),
-  price_per_coin NUMERIC(15, 2) NOT NULL CHECK (price_per_coin >= 0),
-  discount NUMERIC(15, 2) NOT NULL DEFAULT 0 CHECK (discount >= 0),
-  additional_charge NUMERIC(15, 2) NOT NULL DEFAULT 0 CHECK (additional_charge >= 0),
-  subtotal NUMERIC(15, 2) NOT NULL,
-  grand_total NUMERIC(15, 2) NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
 -- Audit logs table
 CREATE TABLE IF NOT EXISTS audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   action TEXT NOT NULL,
-  entity_type TEXT CHECK (entity_type IN ('coin_request', 'calculation')),
+  entity_type TEXT CHECK (entity_type IN ('coin_request')),
   entity_id UUID,
   metadata JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -62,9 +47,6 @@ CREATE INDEX IF NOT EXISTS idx_coin_requests_payment_method ON coin_requests(pay
 CREATE INDEX IF NOT EXISTS idx_coin_requests_created_at ON coin_requests(created_at);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_who_requested ON coin_requests(who_requested);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_txn_id ON coin_requests(txn_id);
-
-CREATE INDEX IF NOT EXISTS idx_calculations_user_id ON calculations(user_id);
-CREATE INDEX IF NOT EXISTS idx_calculations_created_at ON calculations(created_at);
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
@@ -84,10 +66,6 @@ CREATE TRIGGER update_profiles_updated_at
 
 CREATE TRIGGER update_coin_requests_updated_at
   BEFORE UPDATE ON coin_requests
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_calculations_updated_at
-  BEFORE UPDATE ON calculations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Auto-create profile on signup
@@ -122,7 +100,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 -- Enable RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coin_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE calculations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
@@ -159,23 +136,6 @@ CREATE POLICY "Users can update own coin requests"
 
 CREATE POLICY "Users can delete own coin requests"
   ON coin_requests FOR DELETE
-  USING (user_id = auth.uid() OR is_admin());
-
--- Calculations policies
-CREATE POLICY "Users can view own calculations"
-  ON calculations FOR SELECT
-  USING (user_id = auth.uid() OR is_admin());
-
-CREATE POLICY "Users can insert own calculations"
-  ON calculations FOR INSERT
-  WITH CHECK (user_id = auth.uid() OR is_admin());
-
-CREATE POLICY "Users can update own calculations"
-  ON calculations FOR UPDATE
-  USING (user_id = auth.uid() OR is_admin());
-
-CREATE POLICY "Users can delete own calculations"
-  ON calculations FOR DELETE
   USING (user_id = auth.uid() OR is_admin());
 
 -- Audit logs policies

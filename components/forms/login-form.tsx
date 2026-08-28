@@ -32,7 +32,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
-        <CardDescription>Enter your credentials to access Coin Calculator</CardDescription>
+        <CardDescription>Enter your credentials to access Coin Requests</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={handleSubmit} className="space-y-4">
