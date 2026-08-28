@@ -1,36 +1,166 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Coin Calculator
+
+A production-ready full-stack web application for digital calculation notebooks and coin request management.
+
+## Stack
+
+- **Frontend + Backend:** Next.js 15 (App Router, Route Handlers, Server Actions)
+- **Database + Auth:** Supabase PostgreSQL, Supabase Auth, Row Level Security
+- **Deployment:** Vercel
+- **UI:** Tailwind CSS, shadcn/ui, Lucide icons
+
+## Features
+
+- User authentication (register, login, logout, password reset)
+- Dashboard with live stats from Supabase
+- Calculator with decimal-safe arithmetic
+- Calculation notebook (save, edit, delete, duplicate, search)
+- Coin request management with payment status (Paid/Due/Partial)
+- Payment methods: Bkash, Nagad, Others
+- Transaction ID tracking for paid/partial requests
+- Server-side pagination, search, and filters
+- Mobile-responsive dashboard with drawer navigation
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- npm
+- Supabase account
+- Vercel account (for deployment)
+
+### 1. Clone and install
+
+```bash
+git clone <your-repo-url>
+cd coin-calculator
+npm install
+```
+
+### 2. Environment variables
+
+Copy `.env.example` to `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 3. Supabase setup
+
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Run the migration in `supabase/migrations/001_initial_schema.sql`:
+   - Open Supabase Dashboard → SQL Editor
+   - Paste and run the migration file contents
+3. Enable Email auth in Authentication → Providers
+4. Add redirect URLs:
+   - `http://localhost:3000/reset-password`
+   - Your production URL + `/reset-password`
+
+### 4. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database Migrations
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All schema changes live in `supabase/migrations/`. To apply:
 
-## Learn More
+1. Open Supabase SQL Editor
+2. Run migration files in order (001, 002, …)
 
-To learn more about Next.js, take a look at the following resources:
+The initial migration creates:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `profiles` — user profiles with admin role
+- `coin_requests` — coin request records
+- `calculations` — saved calculations
+- `audit_logs` — action audit trail
+- RLS policies for user isolation and admin access
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Vercel Deployment
 
-## Deploy on Vercel
+### Step 1 — GitHub
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+git add .
+git commit -m "Initial Coin Calculator app"
+git push origin main
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Step 2 — Supabase
+
+Ensure migrations are applied and auth is configured (see above).
+
+### Step 3 — Vercel
+
+1. Import the GitHub repository at [vercel.com](https://vercel.com)
+2. Framework: **Next.js**
+3. Build command: `next build`
+4. Install command: `npm install`
+5. Set environment variables (same as `.env.local`)
+6. Deploy
+
+### Step 4 — Verify
+
+Test these routes in production:
+
+- `/login`
+- `/dashboard`
+- `/dashboard/calculator`
+- `/dashboard/coin-requests`
+
+## Scripts
+
+```bash
+npm run dev      # Start development server
+npm run build    # Production build
+npm run start    # Start production server
+npm run lint     # Run ESLint
+npm run test     # Run tests
+```
+
+## Project Structure
+
+```
+app/
+  (auth)/          # Login, register, password reset
+  dashboard/       # Protected dashboard pages
+  api/             # Route Handlers
+components/        # UI and feature components
+lib/
+  supabase/        # Supabase clients
+  services/        # Business logic
+  validations/     # Zod schemas
+  permissions/     # Auth helpers
+supabase/
+  migrations/      # Database migrations
+types/             # TypeScript types
+```
+
+## Security
+
+- Service role key is server-side only (never `NEXT_PUBLIC_`)
+- RLS enabled on all user data tables
+- Server-side permission checks on all API routes
+- Transaction IDs excluded from audit log metadata
+- Backend Zod validation is authoritative
+
+## Admin Access
+
+After registering, promote a user to admin in Supabase SQL Editor:
+
+```sql
+UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
+```
