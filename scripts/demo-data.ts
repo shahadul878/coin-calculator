@@ -131,6 +131,14 @@ export function generateDemoCoinRequests(
   return rows;
 }
 
+export const DEMO_REQUEST_COUNT = 200;
+
+export function getDemoRequestIds(count = DEMO_REQUEST_COUNT): string[] {
+  return Array.from({ length: count }, (_, i) =>
+    String(i + 1).padStart(6, "0")
+  );
+}
+
 export function summarizeDemoRows(rows: DemoCoinRequest[]) {
   return {
     total: rows.length,

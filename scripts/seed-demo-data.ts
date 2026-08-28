@@ -1,7 +1,9 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import {
+  DEMO_REQUEST_COUNT,
   generateDemoCoinRequests,
+  getDemoRequestIds,
   summarizeDemoRows,
 } from "./demo-data";
 
@@ -69,9 +71,7 @@ async function supabaseRequest(
   return text ? JSON.parse(text) : null;
 }
 
-async function main() {
-  loadEnvFile(".env.local");
-
+async function resolveDemoProfile(): Promise<{ id: string; email: string }> {
   const targetEmail = process.env.DEMO_USER_EMAIL;
   let profile: { id: string; email: string } | null = null;
 
@@ -93,7 +93,72 @@ async function main() {
     }
   }
 
+  return profile;
+}
+
+async function clearDemoData(profile: { id: string; email: string }) {
+  const demoRequestIds = getDemoRequestIds();
+  const requestIdFilter = demoRequestIds.join(",");
+
+  const demoRequests = (await supabaseRequest(
+    `coin_requests?select=id,request_id&user_id=eq.${profile.id}&request_id=in.(${requestIdFilter})`
+  )) as Array<{ id: string; request_id: string }> | null;
+
+  const requestCount = demoRequests?.length ?? 0;
+  if (requestCount === 0) {
+    console.log("No demo coin requests found to delete.");
+    return { coinRequests: 0, statusLogs: 0, auditLogs: 0 };
+  }
+
+  const coinRequestIds = demoRequests!.map((row) => row.id);
+  const coinRequestIdFilter = coinRequestIds.join(",");
+
+  const statusLogs = (await supabaseRequest(
+    `coin_request_status_logs?select=id&coin_request_id=in.(${coinRequestIdFilter})`
+  )) as Array<{ id: string }> | null;
+  const statusLogCount = statusLogs?.length ?? 0;
+
+  const auditLogs = (await supabaseRequest(
+    `audit_logs?select=id&entity_type=eq.coin_request&entity_id=in.(${coinRequestIdFilter})`
+  )) as Array<{ id: string }> | null;
+  const auditLogCount = auditLogs?.length ?? 0;
+
+  if (auditLogCount > 0) {
+    await supabaseRequest(
+      `audit_logs?entity_type=eq.coin_request&entity_id=in.(${coinRequestIdFilter})`,
+      { method: "DELETE", prefer: "return=minimal" }
+    );
+  }
+
+  await supabaseRequest(
+    `coin_requests?user_id=eq.${profile.id}&request_id=in.(${requestIdFilter})`,
+    { method: "DELETE", prefer: "return=minimal" }
+  );
+
+  return {
+    coinRequests: requestCount,
+    statusLogs: statusLogCount,
+    auditLogs: auditLogCount,
+  };
+}
+
+async function main() {
+  loadEnvFile(".env.local");
+
+  const profile = await resolveDemoProfile();
   console.log(`Using profile: ${profile.email}`);
+
+  const clearOnly =
+    process.argv.includes("--clear") || process.argv.includes("--clear-only");
+  if (clearOnly) {
+    const deleted = await clearDemoData(profile);
+    console.log("\nDemo clear complete");
+    console.log(`Deleted coin_requests: ${deleted.coinRequests}`);
+    console.log(`Deleted coin_request_status_logs: ${deleted.statusLogs}`);
+    console.log(`Deleted audit_logs: ${deleted.auditLogs}`);
+    console.log(`Profile preserved: ${profile.email}`);
+    return;
+  }
 
   const reset = process.argv.includes("--reset");
   if (reset) {
@@ -104,7 +169,7 @@ async function main() {
     console.log("Cleared existing coin requests for user.");
   }
 
-  const rows = generateDemoCoinRequests(profile.id, 200);
+  const rows = generateDemoCoinRequests(profile.id, DEMO_REQUEST_COUNT);
   const summary = summarizeDemoRows(rows);
 
   const chunkSize = 50;
