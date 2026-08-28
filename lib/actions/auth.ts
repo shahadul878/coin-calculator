@@ -1,8 +1,10 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/services/audit.service";
+import { clearImpersonationCookies, getImpersonationMeta } from "@/lib/impersonation";
 
 export async function loginAction(formData: FormData) {
   const supabase = await createClient();
@@ -75,6 +77,8 @@ export async function resetPasswordAction(formData: FormData) {
 }
 
 export async function logoutAction() {
+  const cookieStore = await cookies();
+  const impersonationMeta = getImpersonationMeta(cookieStore);
   const supabase = await createClient();
   const {
     data: { user },
@@ -82,6 +86,14 @@ export async function logoutAction() {
 
   if (user) {
     await logAudit(user.id, "LOGOUT");
+  }
+
+  if (impersonationMeta) {
+    await logAudit(impersonationMeta.admin_id, "IMPERSONATE_END", undefined, impersonationMeta.target_id, {
+      target_email: impersonationMeta.target_email,
+      reason: "logout",
+    });
+    clearImpersonationCookies(cookieStore);
   }
 
   await supabase.auth.signOut();

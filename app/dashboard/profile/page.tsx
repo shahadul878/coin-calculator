@@ -1,11 +1,15 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isSuperAdmin } from "@/lib/permissions";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  const superAdmin = isSuperAdmin(user.profile);
 
   return (
     <div>
@@ -23,9 +27,16 @@ export default async function ProfilePage() {
           <div className="flex justify-between">
             <span className="text-slate-500">Role</span>
             <span>
-              {isSuperAdmin(user.profile) ? "Super Admin" : user.profile?.role ?? "user"}
+              {superAdmin ? "Super Admin" : user.profile?.role ?? "user"}
             </span>
           </div>
+          {superAdmin && (
+            <div className="border-t border-slate-100 pt-4">
+              <Button asChild className="w-full">
+                <Link href="/dashboard/admin/users">Login as another user</Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

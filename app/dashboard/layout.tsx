@@ -1,15 +1,24 @@
-import { Sidebar } from "@/components/dashboard/sidebar";
+import { cookies } from "next/headers";
 
-export default function DashboardLayout({
+import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { getImpersonationMeta } from "@/lib/impersonation";
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const impersonationMeta = getImpersonationMeta(await cookies());
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
       <main className="relative flex-1 overflow-auto bg-mesh-gradient">
-        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+          {impersonationMeta && <ImpersonationBanner meta={impersonationMeta} />}
+          {children}
+        </div>
       </main>
     </div>
   );

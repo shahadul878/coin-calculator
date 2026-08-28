@@ -13,7 +13,9 @@ export type AuditAction =
   | "UPDATE_COIN_REQUEST"
   | "DELETE_COIN_REQUEST"
   | "LOGIN"
-  | "LOGOUT";
+  | "LOGOUT"
+  | "IMPERSONATE_START"
+  | "IMPERSONATE_END";
 
 export type EntityType = "coin_request";
 
