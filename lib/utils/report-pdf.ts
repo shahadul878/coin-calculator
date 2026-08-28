@@ -6,7 +6,6 @@ import PDFDocument from "pdfkit";
 const COLORS = {
   navy: "#0f172a",
   gold: "#f59e0b",
-  goldDark: "#d97706",
   slate: "#64748b",
   slateLight: "#94a3b8",
   border: "#e2e8f0",
@@ -20,7 +19,29 @@ const PAGE = {
   margin: 48,
   width: 595.28,
   height: 841.89,
+  contentBottom: 788,
 };
+
+const CONTENT_WIDTH = PAGE.width - PAGE.margin * 2;
+
+type PDFDoc = InstanceType<typeof PDFDocument>;
+
+interface TableColumn {
+  label: string;
+  width: number;
+  align?: "left" | "right" | "center";
+}
+
+const TABLE_COLUMNS: TableColumn[] = [
+  { label: "ID", width: 44 },
+  { label: "Requested By", width: 96 },
+  { label: "Price", width: 58, align: "right" },
+  { label: "Coins", width: 52, align: "right" },
+  { label: "Payment", width: 52 },
+  { label: "Send", width: 46 },
+  { label: "Method", width: 56 },
+  { label: "Created", width: 95 },
+];
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -30,13 +51,14 @@ function formatCurrency(value: number): string {
 }
 
 function formatReportDateTime(date: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(date));
+  const d = new Date(date);
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "2-digit",
+  }).format(d);
+  const timePart = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${datePart} ${timePart}`;
 }
 
 function formatPaymentMethod(
@@ -56,7 +78,12 @@ function capitalize(value: string): string {
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
-  return `${text.slice(0, max - 1)}…`;
+  return `${text.slice(0, max - 3)}...`;
+}
+
+function pdfSafeCoinAmount(value: number): string {
+  const formatted = formatCoinAmount(value);
+  return formatted === "\u2014" ? "-" : formatted;
 }
 
 function buildFilterLines(report: CoinRequestReport): string[] {
@@ -65,7 +92,9 @@ function buildFilterLines(report: CoinRequestReport): string[] {
     report.filters.dateFrom,
     report.filters.dateTo
   );
-  if (range) lines.push(`Period: ${range}`);
+  if (range) {
+    lines.push(`Period: ${range.replace(/\u2013/g, "-")}`);
+  }
   if (report.filters.requestId) {
     lines.push(`Request ID: ${report.filters.requestId.padStart(6, "0")}`);
   }
@@ -76,51 +105,60 @@ function buildFilterLines(report: CoinRequestReport): string[] {
   return lines;
 }
 
-type PDFDoc = InstanceType<typeof PDFDocument>;
-
 function drawHeader(doc: PDFDoc, pageNumber: number) {
-  const contentWidth = PAGE.width - PAGE.margin * 2;
-
   doc.save();
   doc.rect(0, 0, PAGE.width, 88).fill(COLORS.navy);
   doc.rect(0, 84, PAGE.width, 4).fill(COLORS.gold);
 
   doc.fillColor(COLORS.white).font("Helvetica-Bold").fontSize(20);
-  doc.text("Coin Requests", PAGE.margin, 28, { width: contentWidth });
+  doc.text("Coin Requests", PAGE.margin, 28, {
+    width: CONTENT_WIDTH,
+    lineBreak: false,
+  });
 
   doc.fillColor(COLORS.slateLight).font("Helvetica").fontSize(10);
-  doc.text("MANAGEMENT REPORT", PAGE.margin, 52);
+  doc.text("MANAGEMENT REPORT", PAGE.margin, 52, { lineBreak: false });
 
   doc.fillColor(COLORS.white).font("Helvetica").fontSize(9);
   doc.text(`Page ${pageNumber}`, PAGE.margin, 28, {
-    width: contentWidth,
+    width: CONTENT_WIDTH,
     align: "right",
+    lineBreak: false,
   });
   doc.restore();
-
-  doc.y = 108;
 }
 
-function drawFooter(doc: PDFDoc) {
+function drawFooterOnPage(doc: PDFDoc) {
   const footerY = PAGE.height - 36;
-  const contentWidth = PAGE.width - PAGE.margin * 2;
+  const left = `Generated ${formatReportDateTime(new Date().toISOString())} | Coin Requests System`;
+  const previousBottom = doc.page.margins.bottom;
 
-  doc.save();
+  doc.page.margins.bottom = 0;
+  doc.x = PAGE.margin;
+  doc.y = footerY;
+
   doc.strokeColor(COLORS.border).lineWidth(1);
-  doc.moveTo(PAGE.margin, footerY - 8).lineTo(PAGE.margin + contentWidth, footerY - 8).stroke();
+  doc
+    .moveTo(PAGE.margin, footerY - 8)
+    .lineTo(PAGE.margin + CONTENT_WIDTH, footerY - 8)
+    .stroke();
 
   doc.fillColor(COLORS.slate).font("Helvetica").fontSize(8);
-  doc.text(
-    `Generated ${formatReportDateTime(new Date().toISOString())} · Coin Requests System`,
-    PAGE.margin,
-    footerY,
-    { width: contentWidth, align: "left" }
-  );
-  doc.text("Confidential", PAGE.margin, footerY, {
-    width: contentWidth,
-    align: "right",
+  doc.text(left, PAGE.margin, footerY, {
+    width: CONTENT_WIDTH - 72,
+    lineBreak: false,
+    height: 10,
   });
-  doc.restore();
+  doc.text("Confidential", PAGE.margin + CONTENT_WIDTH - 72, footerY, {
+    width: 72,
+    align: "right",
+    lineBreak: false,
+    height: 10,
+  });
+
+  doc.page.margins.bottom = previousBottom;
+  doc.x = PAGE.margin;
+  doc.y = PAGE.margin;
 }
 
 function drawStatBox(
@@ -134,9 +172,15 @@ function drawStatBox(
   doc.save();
   doc.roundedRect(x, y, width, 58, 6).fillAndStroke(COLORS.rowAlt, COLORS.border);
   doc.fillColor(COLORS.slate).font("Helvetica").fontSize(8);
-  doc.text(label.toUpperCase(), x + 12, y + 12, { width: width - 24 });
+  doc.text(label.toUpperCase(), x + 12, y + 12, {
+    width: width - 24,
+    lineBreak: false,
+  });
   doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(14);
-  doc.text(value, x + 12, y + 28, { width: width - 24 });
+  doc.text(value, x + 12, y + 30, {
+    width: width - 24,
+    lineBreak: false,
+  });
   doc.restore();
 }
 
@@ -147,88 +191,148 @@ function drawSummaryPanel(
   width: number,
   title: string,
   rows: { label: string; value: string }[]
-) {
+): number {
   const height = 34 + rows.length * 22;
+
   doc.save();
   doc.roundedRect(x, y, width, height, 6).stroke(COLORS.border);
   doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(10);
-  doc.text(title, x + 14, y + 12);
+  doc.text(title, x + 14, y + 12, { lineBreak: false });
+
   let rowY = y + 30;
   rows.forEach((row, index) => {
     if (index % 2 === 0) {
-      doc.rect(x + 1, rowY - 2, width - 2, 20).fill(COLORS.rowAlt);
+      doc.save();
+      doc.fillColor(COLORS.rowAlt);
+      doc.rect(x + 1, rowY - 2, width - 2, 20).fill();
+      doc.restore();
     }
     doc.fillColor(COLORS.muted).font("Helvetica").fontSize(9);
-    doc.text(row.label, x + 14, rowY, { width: width / 2 });
+    doc.text(row.label, x + 14, rowY, {
+      width: width / 2 - 14,
+      lineBreak: false,
+    });
     doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(9);
     doc.text(row.value, x + width / 2, rowY, {
       width: width / 2 - 14,
       align: "right",
+      lineBreak: false,
     });
     rowY += 22;
   });
   doc.restore();
+
   return height;
 }
 
-const TABLE_COLUMNS = [
-  { label: "ID", width: 42 },
-  { label: "Requested By", width: 88 },
-  { label: "Price", width: 52 },
-  { label: "Coins", width: 48 },
-  { label: "Payment", width: 48 },
-  { label: "Send", width: 42 },
-  { label: "Method", width: 52 },
-  { label: "Created", width: 95 },
-];
-
 function drawTableHeader(doc: PDFDoc, y: number): number {
   let x = PAGE.margin;
+
   doc.save();
-  doc.rect(PAGE.margin, y, PAGE.width - PAGE.margin * 2, 24).fill(COLORS.navy);
+  doc.rect(PAGE.margin, y, CONTENT_WIDTH, 24).fill(COLORS.navy);
   TABLE_COLUMNS.forEach((col) => {
     doc.fillColor(COLORS.white).font("Helvetica-Bold").fontSize(8);
-    doc.text(col.label, x + 6, y + 8, { width: col.width - 10 });
+    doc.text(col.label, x + 6, y + 8, {
+      width: col.width - 12,
+      align: col.align ?? "left",
+      lineBreak: false,
+    });
     x += col.width;
   });
   doc.restore();
+  doc.font("Helvetica").fontSize(8);
+
   return y + 24;
 }
 
-function drawTableRow(doc: PDFDoc, y: number, row: CoinRequest, alt: boolean): number {
-  const rowHeight = 22;
-  const tableWidth = PAGE.width - PAGE.margin * 2;
+function getTableRowValues(row: CoinRequest): string[] {
+  return [
+    row.request_id,
+    truncate(row.who_requested, 20),
+    formatCurrency(row.price),
+    pdfSafeCoinAmount(row.coin_amount),
+    capitalize(row.payment_status),
+    capitalize(row.send_status),
+    truncate(formatPaymentMethod(row.payment_method, row.payment_method_other), 12),
+    formatReportDateTime(row.created_at),
+  ];
+}
+
+function measureTableRowHeight(doc: PDFDoc, values: string[]): number {
+  doc.font("Helvetica").fontSize(8);
+  let maxHeight = 16;
+  values.forEach((value, index) => {
+    const col = TABLE_COLUMNS[index];
+    const height = doc.heightOfString(value, {
+      width: col.width - 12,
+    });
+    maxHeight = Math.max(maxHeight, height);
+  });
+  return maxHeight + 10;
+}
+
+function drawTableRow(
+  doc: PDFDoc,
+  y: number,
+  values: string[],
+  alt: boolean
+): number {
+  const rowHeight = measureTableRowHeight(doc, values);
 
   if (alt) {
     doc.save();
-    doc.rect(PAGE.margin, y, tableWidth, rowHeight).fill(COLORS.rowAlt);
+    doc.fillColor(COLORS.rowAlt);
+    doc.rect(PAGE.margin, y, CONTENT_WIDTH, rowHeight).fill();
     doc.restore();
   }
 
-  const values = [
-    row.request_id,
-    truncate(row.who_requested, 18),
-    formatCurrency(row.price),
-    formatCoinAmount(row.coin_amount),
-    capitalize(row.payment_status),
-    capitalize(row.send_status),
-    truncate(formatPaymentMethod(row.payment_method, row.payment_method_other), 10),
-    formatReportDateTime(row.created_at),
-  ];
-
   let x = PAGE.margin;
   values.forEach((value, index) => {
+    const col = TABLE_COLUMNS[index];
     doc.fillColor(COLORS.text).font("Helvetica").fontSize(8);
-    doc.text(value, x + 6, y + 6, { width: TABLE_COLUMNS[index].width - 10 });
-    x += TABLE_COLUMNS[index].width;
+    doc.text(value, x + 6, y + 5, {
+      width: col.width - 12,
+      align: col.align ?? "left",
+      lineBreak: false,
+      height: rowHeight - 10,
+    });
+    x += col.width;
   });
+
+  doc.x = PAGE.margin;
+  doc.y = y + rowHeight;
 
   doc.save();
   doc.strokeColor(COLORS.border).lineWidth(0.5);
-  doc.moveTo(PAGE.margin, y + rowHeight).lineTo(PAGE.margin + tableWidth, y + rowHeight).stroke();
+  doc
+    .moveTo(PAGE.margin, y + rowHeight)
+    .lineTo(PAGE.margin + CONTENT_WIDTH, y + rowHeight)
+    .stroke();
   doc.restore();
 
   return y + rowHeight;
+}
+
+function startTablePage(
+  doc: PDFDoc,
+  pageNumber: number,
+  continued: boolean
+): { tableY: number; pageNumber: number } {
+  doc.addPage();
+  pageNumber += 1;
+  drawHeader(doc, pageNumber);
+
+  let y = 108;
+  if (continued) {
+    doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(12);
+    doc.text("Detailed Records (continued)", PAGE.margin, y, { lineBreak: false });
+    y += 22;
+  }
+
+  return {
+    tableY: drawTableHeader(doc, y),
+    pageNumber,
+  };
 }
 
 export async function generateCoinRequestReportPdf(
@@ -239,6 +343,7 @@ export async function generateCoinRequestReportPdf(
       size: "A4",
       margin: PAGE.margin,
       bufferPages: true,
+      autoFirstPage: true,
     });
 
     const chunks: Buffer[] = [];
@@ -249,34 +354,34 @@ export async function generateCoinRequestReportPdf(
     let pageNumber = 1;
     drawHeader(doc, pageNumber);
 
-    const contentWidth = PAGE.width - PAGE.margin * 2;
+    let y = 108;
+
     doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(16);
-    doc.text("Coin Request Report", PAGE.margin, doc.y, { width: contentWidth });
-    doc.moveDown(0.4);
+    doc.text("Coin Request Report", PAGE.margin, y, { lineBreak: false });
+    y += 24;
 
     doc.fillColor(COLORS.slate).font("Helvetica").fontSize(10);
     buildFilterLines(report).forEach((line) => {
-      doc.text(line, PAGE.margin, doc.y, { width: contentWidth });
-      doc.moveDown(0.2);
+      doc.text(line, PAGE.margin, y, { width: CONTENT_WIDTH, lineBreak: false });
+      y += 14;
     });
-    doc.moveDown(0.8);
+    y += 12;
 
-    const statsY = doc.y;
-    const statWidth = (contentWidth - 18) / 4;
+    const statWidth = (CONTENT_WIDTH - 18) / 4;
     const { summary } = report;
-    drawStatBox(doc, PAGE.margin, statsY, statWidth, "Total Records", String(summary.totalRecords));
+    drawStatBox(doc, PAGE.margin, y, statWidth, "Total Records", String(summary.totalRecords));
     drawStatBox(
       doc,
       PAGE.margin + statWidth + 6,
-      statsY,
+      y,
       statWidth,
       "Total Coins",
-      formatCoinAmount(summary.totalCoins)
+      pdfSafeCoinAmount(summary.totalCoins)
     );
     drawStatBox(
       doc,
       PAGE.margin + (statWidth + 6) * 2,
-      statsY,
+      y,
       statWidth,
       "Total Price",
       formatCurrency(summary.totalPrice)
@@ -284,7 +389,7 @@ export async function generateCoinRequestReportPdf(
     drawStatBox(
       doc,
       PAGE.margin + (statWidth + 6) * 3,
-      statsY,
+      y,
       statWidth,
       "Outstanding",
       formatCurrency(
@@ -293,63 +398,56 @@ export async function generateCoinRequestReportPdf(
           .reduce((sum, row) => sum + row.price, 0)
       )
     );
+    y += 72;
 
-    doc.y = statsY + 72;
-    const panelWidth = (contentWidth - 12) / 2;
-    const panelHeight = drawSummaryPanel(
-      doc,
-      PAGE.margin,
-      doc.y,
-      panelWidth,
-      "Payment Summary",
-      [
-        { label: "Paid", value: `${summary.paidCount} requests` },
-        { label: "Due", value: `${summary.dueCount} requests` },
-        { label: "Partial", value: `${summary.partialCount} requests` },
-      ]
-    );
-    drawSummaryPanel(
-      doc,
-      PAGE.margin + panelWidth + 12,
-      doc.y,
-      panelWidth,
-      "Send Summary",
-      [
-        { label: "Pending", value: String(summary.sendPending) },
-        { label: "Done", value: String(summary.sendDone) },
-        { label: "Cancelled", value: String(summary.sendCancel) },
-      ]
-    );
-    doc.y += panelHeight + 20;
+    const panelWidth = (CONTENT_WIDTH - 12) / 2;
+    const panelY = y;
+    const panelHeight = drawSummaryPanel(doc, PAGE.margin, panelY, panelWidth, "Payment Summary", [
+      { label: "Paid", value: `${summary.paidCount} requests` },
+      { label: "Due", value: `${summary.dueCount} requests` },
+      { label: "Partial", value: `${summary.partialCount} requests` },
+    ]);
+    drawSummaryPanel(doc, PAGE.margin + panelWidth + 12, panelY, panelWidth, "Send Summary", [
+      { label: "Pending", value: String(summary.sendPending) },
+      { label: "Done", value: String(summary.sendDone) },
+      { label: "Cancelled", value: String(summary.sendCancel) },
+    ]);
+    y = panelY + panelHeight + 20;
 
     doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(12);
-    doc.text(`Detailed Records (${report.rows.length})`, PAGE.margin, doc.y);
-    doc.moveDown(0.6);
+    doc.text(`Detailed Records (${report.rows.length})`, PAGE.margin, y, {
+      lineBreak: false,
+    });
+    y += 22;
 
     if (report.rows.length === 0) {
       doc.fillColor(COLORS.slate).font("Helvetica").fontSize(10);
-      doc.text("No coin requests match the selected filters.", PAGE.margin, doc.y);
+      doc.text("No coin requests match the selected filters.", PAGE.margin, y, {
+        lineBreak: false,
+      });
     } else {
-      let tableY = drawTableHeader(doc, doc.y);
-      const bottomLimit = PAGE.height - 56;
+      let tableY = drawTableHeader(doc, y);
 
       report.rows.forEach((row, index) => {
-        if (tableY + 22 > bottomLimit) {
-          drawFooter(doc);
-          doc.addPage();
-          pageNumber += 1;
-          drawHeader(doc, pageNumber);
-          doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(12);
-          doc.text("Detailed Records (continued)", PAGE.margin, doc.y);
-          doc.moveDown(0.6);
-          tableY = drawTableHeader(doc, doc.y);
+        const values = getTableRowValues(row);
+        const rowHeight = measureTableRowHeight(doc, values);
+
+        if (tableY + rowHeight > PAGE.contentBottom) {
+          const nextPage = startTablePage(doc, pageNumber, true);
+          pageNumber = nextPage.pageNumber;
+          tableY = nextPage.tableY;
         }
-        tableY = drawTableRow(doc, tableY, row, index % 2 === 1);
+
+        tableY = drawTableRow(doc, tableY, values, index % 2 === 1);
       });
-      doc.y = tableY + 8;
     }
 
-    drawFooter(doc);
+    const pageRange = doc.bufferedPageRange();
+    for (let i = pageRange.start; i < pageRange.start + pageRange.count; i += 1) {
+      doc.switchToPage(i);
+      drawFooterOnPage(doc);
+    }
+
     doc.end();
   });
 }

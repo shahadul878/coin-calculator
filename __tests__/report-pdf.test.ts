@@ -3,6 +3,11 @@ import { generateDemoCoinRequests } from "../scripts/demo-data";
 import { generateCoinRequestReportPdf } from "@/lib/utils/report-pdf";
 import type { CoinRequestReport } from "@/types";
 
+function countPdfPages(buffer: Buffer): number {
+  const matches = buffer.toString("binary").match(/\/Type\s*\/Page[^s]/g);
+  return matches?.length ?? 0;
+}
+
 describe("demo report pdf", () => {
   it("generates a non-empty PDF for 200 demo rows", async () => {
     const userId = "00000000-0000-0000-0000-000000000001";
@@ -39,5 +44,9 @@ describe("demo report pdf", () => {
     const pdf = await generateCoinRequestReportPdf(report);
     expect(pdf.length).toBeGreaterThan(5000);
     expect(pdf.subarray(0, 4).toString()).toBe("%PDF");
+
+    const pageCount = countPdfPages(pdf);
+    expect(pageCount).toBeGreaterThanOrEqual(8);
+    expect(pageCount).toBeLessThanOrEqual(12);
   }, 30000);
 });
