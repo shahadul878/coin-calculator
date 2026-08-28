@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, Search } from "lucide-react";
+import { Download, FileText, Search, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,7 +70,7 @@ export function CoinRequestReportPanel() {
     setLoading(false);
   }
 
-  function handleExport() {
+  function handleExportCsv() {
     const query = buildQueryParams({
       dateFrom,
       dateTo,
@@ -78,6 +78,16 @@ export function CoinRequestReportPanel() {
       whoRequested,
     });
     window.location.href = `/api/reports/coin-requests/export?${query}`;
+  }
+
+  function handleExportPdf() {
+    const query = buildQueryParams({
+      dateFrom,
+      dateTo,
+      requestId,
+      whoRequested,
+    });
+    window.location.href = `/api/reports/coin-requests/export-pdf?${query}`;
   }
 
   return (
@@ -127,14 +137,23 @@ export function CoinRequestReportPanel() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button onClick={handleGenerate} disabled={loading} className="gap-2">
               <Search className="h-4 w-4" />
               {loading ? "Generating..." : "Generate Report"}
             </Button>
             <Button
               variant="outline"
-              onClick={handleExport}
+              onClick={handleExportPdf}
+              disabled={loading}
+              className="gap-2"
+            >
+              <FileDown className="h-4 w-4" />
+              Export PDF
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExportCsv}
               disabled={loading}
               className="gap-2"
             >
