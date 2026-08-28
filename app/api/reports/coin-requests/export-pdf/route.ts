@@ -9,6 +9,9 @@ import {
   serverError,
 } from "@/lib/utils/api-response";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -45,7 +48,8 @@ export async function GET(request: NextRequest) {
         "Content-Length": String(pdfBuffer.length),
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("PDF export failed:", error);
     return serverError();
   }
 }

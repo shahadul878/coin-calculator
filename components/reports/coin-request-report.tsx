@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Download, FileText, Search, FileDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +44,7 @@ export function CoinRequestReportPanel() {
   const [requestId, setRequestId] = useState("");
   const [whoRequested, setWhoRequested] = useState("");
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState<"csv" | "pdf" | null>(null);
   const [report, setReport] = useState<CoinRequestReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,24 +72,68 @@ export function CoinRequestReportPanel() {
     setLoading(false);
   }
 
-  function handleExportCsv() {
+  async function downloadExport(path: string, fallbackFilename: string, kind: "csv" | "pdf") {
+    setExporting(kind);
+    setError(null);
+
     const query = buildQueryParams({
       dateFrom,
       dateTo,
       requestId,
       whoRequested,
     });
-    window.location.href = `/api/reports/coin-requests/export?${query}`;
+
+    try {
+      const res = await fetch(`${path}?${query}`);
+      const contentType = res.headers.get("content-type") ?? "";
+
+      if (!res.ok) {
+        if (contentType.includes("application/json")) {
+          const result = await res.json();
+          const message = result.error ?? "Export failed";
+          setError(message);
+          toast.error(message);
+        } else {
+          setError("Export failed");
+          toast.error("Export failed");
+        }
+        return;
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get("content-disposition");
+      const filenameMatch = disposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch?.[1] ?? fallbackFilename;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${kind.toUpperCase()} downloaded`);
+    } catch {
+      setError("Export failed");
+      toast.error("Export failed");
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  function handleExportCsv() {
+    void downloadExport(
+      "/api/reports/coin-requests/export",
+      `coin-requests-report-${new Date().toISOString().slice(0, 10)}.csv`,
+      "csv"
+    );
   }
 
   function handleExportPdf() {
-    const query = buildQueryParams({
-      dateFrom,
-      dateTo,
-      requestId,
-      whoRequested,
-    });
-    window.location.href = `/api/reports/coin-requests/export-pdf?${query}`;
+    void downloadExport(
+      "/api/reports/coin-requests/export-pdf",
+      `coin-requests-report-${new Date().toISOString().slice(0, 10)}.pdf`,
+      "pdf"
+    );
   }
 
   return (
@@ -145,20 +191,20 @@ export function CoinRequestReportPanel() {
             <Button
               variant="outline"
               onClick={handleExportPdf}
-              disabled={loading}
+              disabled={loading || exporting !== null}
               className="gap-2"
             >
               <FileDown className="h-4 w-4" />
-              Export PDF
+              {exporting === "pdf" ? "Exporting..." : "Export PDF"}
             </Button>
             <Button
               variant="outline"
               onClick={handleExportCsv}
-              disabled={loading}
+              disabled={loading || exporting !== null}
               className="gap-2"
             >
               <Download className="h-4 w-4" />
-              Export CSV
+              {exporting === "csv" ? "Exporting..." : "Export CSV"}
             </Button>
           </div>
 

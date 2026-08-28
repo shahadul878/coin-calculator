@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  serverExternalPackages: ["pdfkit"],
+  outputFileTracingIncludes: {
+    "/api/reports/coin-requests/export-pdf": ["./node_modules/pdfkit/**/*"],
+  },
 };
 
 export default nextConfig;

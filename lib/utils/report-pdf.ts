@@ -1,6 +1,7 @@
 import type { CoinRequest, CoinRequestReport } from "@/types";
 import { formatDateRangeLabel } from "@/lib/utils/date-range";
 import { formatCoinAmount } from "@/lib/utils/coin-amount";
+import PDFDocument from "pdfkit";
 
 const COLORS = {
   navy: "#0f172a",
@@ -42,7 +43,7 @@ function formatPaymentMethod(
   method: CoinRequest["payment_method"],
   other: string | null
 ): string {
-  if (!method) return "—";
+  if (!method) return "-";
   if (method === "others" && other) return other;
   if (method === "bkash") return "Bkash";
   if (method === "nagad") return "Nagad";
@@ -75,7 +76,7 @@ function buildFilterLines(report: CoinRequestReport): string[] {
   return lines;
 }
 
-type PDFDoc = InstanceType<typeof import("pdfkit")>;
+type PDFDoc = InstanceType<typeof PDFDocument>;
 
 function drawHeader(doc: PDFDoc, pageNumber: number) {
   const contentWidth = PAGE.width - PAGE.margin * 2;
@@ -233,8 +234,6 @@ function drawTableRow(doc: PDFDoc, y: number, row: CoinRequest, alt: boolean): n
 export async function generateCoinRequestReportPdf(
   report: CoinRequestReport
 ): Promise<Buffer> {
-  const PDFDocument = (await import("pdfkit")).default;
-
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       size: "A4",
