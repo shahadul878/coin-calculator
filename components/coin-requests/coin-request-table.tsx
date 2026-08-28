@@ -34,7 +34,7 @@ import { StatusBadge } from "./status-badge";
 import { SendStatusBadge } from "./send-status-badge";
 import { formatPaymentMethod } from "./payment-method-select";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { formatCoinAmount } from "@/lib/utils/coin-amount";
+import { formatCoinAmount, formatPricePerLac } from "@/lib/utils/coin-amount";
 import type { CoinRequest, PaginatedResponse } from "@/types";
 
 export function CoinRequestTable() {
@@ -180,6 +180,7 @@ export function CoinRequestTable() {
               <TableHead>Who Requested</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Coins</TableHead>
+              <TableHead>Price/lac</TableHead>
               <TableHead>Payment</TableHead>
               <TableHead>Send</TableHead>
               <TableHead>Method</TableHead>
@@ -191,13 +192,13 @@ export function CoinRequestTable() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-slate-500">
+                <TableCell colSpan={11} className="text-center text-slate-500">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : data?.data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-slate-500">
+                <TableCell colSpan={11} className="text-center text-slate-500">
                   No coin requests found
                 </TableCell>
               </TableRow>
@@ -208,6 +209,7 @@ export function CoinRequestTable() {
                   <TableCell>{req.who_requested}</TableCell>
                   <TableCell>{formatCurrency(req.price)}</TableCell>
                   <TableCell>{formatCoinAmount(req.coin_amount)}</TableCell>
+                  <TableCell>{formatPricePerLac(req.price, req.coin_amount)}</TableCell>
                   <TableCell>
                     <StatusBadge status={req.payment_status} />
                   </TableCell>

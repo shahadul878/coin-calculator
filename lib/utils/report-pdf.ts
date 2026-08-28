@@ -1,6 +1,6 @@
 import type { CoinRequest, CoinRequestReport } from "@/types";
 import { formatDateRangeLabel } from "@/lib/utils/date-range";
-import { formatCoinAmount } from "@/lib/utils/coin-amount";
+import { formatCoinAmount, formatPricePerLac } from "@/lib/utils/coin-amount";
 import PDFDocument from "pdfkit";
 
 const COLORS = {
@@ -33,14 +33,15 @@ interface TableColumn {
 }
 
 const TABLE_COLUMNS: TableColumn[] = [
-  { label: "ID", width: 44 },
-  { label: "Requested By", width: 96 },
-  { label: "Price", width: 58, align: "right" },
-  { label: "Coins", width: 52, align: "right" },
-  { label: "Payment", width: 52 },
-  { label: "Send", width: 46 },
-  { label: "Method", width: 56 },
-  { label: "Created", width: 95 },
+  { label: "ID", width: 40 },
+  { label: "Requested By", width: 84 },
+  { label: "Price", width: 52, align: "right" },
+  { label: "Coins", width: 46, align: "right" },
+  { label: "Price/lac", width: 50, align: "right" },
+  { label: "Payment", width: 48 },
+  { label: "Send", width: 40 },
+  { label: "Method", width: 48 },
+  { label: "Created", width: 91 },
 ];
 
 function formatCurrency(value: number): string {
@@ -251,6 +252,7 @@ function getTableRowValues(row: CoinRequest): string[] {
     truncate(row.who_requested, 20),
     formatCurrency(row.price),
     pdfSafeCoinAmount(row.coin_amount),
+    formatPricePerLac(row.price, row.coin_amount),
     capitalize(row.payment_status),
     capitalize(row.send_status),
     truncate(formatPaymentMethod(row.payment_method, row.payment_method_other), 12),

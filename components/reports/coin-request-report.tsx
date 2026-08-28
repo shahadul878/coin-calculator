@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { formatCoinAmount } from "@/lib/utils/coin-amount";
+import { formatCoinAmount, formatPricePerLac } from "@/lib/utils/coin-amount";
 import type { CoinRequestReport } from "@/types";
 import { Coins, DollarSign, AlertCircle } from "lucide-react";
 
@@ -298,6 +298,7 @@ export function CoinRequestReportPanel() {
                         <TableHead>Who Requested</TableHead>
                         <TableHead>Price</TableHead>
                         <TableHead>Coins</TableHead>
+                        <TableHead>Price/lac</TableHead>
                         <TableHead>Payment</TableHead>
                         <TableHead>Send</TableHead>
                         <TableHead>Method</TableHead>
@@ -311,6 +312,9 @@ export function CoinRequestReportPanel() {
                           <TableCell>{row.who_requested}</TableCell>
                           <TableCell>{formatCurrency(row.price)}</TableCell>
                           <TableCell>{formatCoinAmount(row.coin_amount)}</TableCell>
+                          <TableCell>
+                            {formatPricePerLac(row.price, row.coin_amount)}
+                          </TableCell>
                           <TableCell>
                             <StatusBadge status={row.payment_status} />
                           </TableCell>

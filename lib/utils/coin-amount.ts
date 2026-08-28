@@ -1,3 +1,5 @@
+export const LAC_COINS = 100_000;
+
 const SUFFIX_MULTIPLIERS: Record<string, number> = {
   k: 1_000,
   m: 1_000_000,
@@ -57,5 +59,30 @@ export function formatCoinAmount(value: number): string {
 
   return value.toLocaleString(undefined, {
     maximumFractionDigits: 4,
+  });
+}
+
+export function calculatePricePerLac(
+  price: number,
+  coinAmount: number
+): number | null {
+  if (
+    !Number.isFinite(price) ||
+    !Number.isFinite(coinAmount) ||
+    coinAmount <= 0
+  ) {
+    return null;
+  }
+
+  return (price / coinAmount) * LAC_COINS;
+}
+
+export function formatPricePerLac(price: number, coinAmount: number): string {
+  const value = calculatePricePerLac(price, coinAmount);
+  if (value === null) return "—";
+
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }

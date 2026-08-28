@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { CoinRequest } from "@/types";
-import { formatCoinAmount } from "@/lib/utils/coin-amount";
+import { formatCoinAmount, formatPricePerLac, parseCoinAmount } from "@/lib/utils/coin-amount";
 
 interface CoinRequestFormProps {
   initialData?: CoinRequest;
@@ -53,7 +53,14 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
   const paymentStatus = watch("payment_status");
   const sendStatus = watch("send_status");
   const paymentMethod = watch("payment_method");
+  const price = watch("price");
+  const coinAmountInput = watch("coin_amount");
   const requiresPayment = paymentStatus === "paid" || paymentStatus === "partial";
+
+  const numericPrice =
+    typeof price === "number" ? price : parseFloat(String(price ?? "")) || 0;
+  const parsedCoinAmount = parseCoinAmount(coinAmountInput);
+  const pricePerLacDisplay = formatPricePerLac(numericPrice, parsedCoinAmount);
 
   async function onSubmit(data: CoinRequestInput) {
     try {
@@ -131,6 +138,16 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
           {errors.coin_amount && (
             <p className="text-sm text-red-600">{errors.coin_amount.message}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Price per lac</Label>
+          <div className="flex h-10 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700">
+            {pricePerLacDisplay}
+          </div>
+          <p className="text-xs text-slate-500">
+            Calculated from price and coin amount (per 100,000 coins)
+          </p>
         </div>
 
         <div className="space-y-2">

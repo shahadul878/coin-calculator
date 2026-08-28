@@ -1,4 +1,5 @@
 import type { CoinRequest } from "@/types";
+import { calculatePricePerLac } from "@/lib/utils/coin-amount";
 
 function formatPaymentMethod(
   method: CoinRequest["payment_method"],
@@ -37,6 +38,7 @@ export function coinRequestsToCsv(rows: CoinRequest[]): string {
     "Who Requested",
     "Price",
     "Coin Amount",
+    "Price per lac",
     "Payment Status",
     "Send Status",
     "Payment Method",
@@ -53,6 +55,7 @@ export function coinRequestsToCsv(rows: CoinRequest[]): string {
         row.who_requested,
         row.price.toFixed(2),
         row.coin_amount,
+        calculatePricePerLac(row.price, row.coin_amount)?.toFixed(2) ?? "",
         row.payment_status,
         row.send_status,
         formatPaymentMethod(row.payment_method, row.payment_method_other),
