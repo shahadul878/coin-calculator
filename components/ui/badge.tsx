@@ -3,18 +3,18 @@ import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide",
   {
     variants: {
       variant: {
-        default: "bg-slate-100 text-slate-800",
-        paid: "bg-green-100 text-green-800",
-        due: "bg-red-100 text-red-800",
-        partial: "bg-amber-100 text-amber-800",
-        done: "bg-green-100 text-green-800",
-        pending: "bg-amber-100 text-amber-800",
-        cancel: "bg-slate-200 text-slate-700",
-        secondary: "bg-slate-100 text-slate-600",
+        default: "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200/60",
+        paid: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/60",
+        due: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200/60",
+        partial: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/60",
+        done: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/60",
+        pending: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/60",
+        cancel: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/60",
+        secondary: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/60",
       },
     },
     defaultVariants: {

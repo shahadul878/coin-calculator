@@ -6,9 +6,11 @@ export function Toaster() {
   return (
     <Sonner
       position="top-right"
+      richColors
       toastOptions={{
         classNames: {
-          toast: "bg-white border border-slate-200 text-slate-900",
+          toast:
+            "rounded-xl border border-slate-200/80 bg-white shadow-premium text-slate-900 font-sans",
         },
       }}
     />

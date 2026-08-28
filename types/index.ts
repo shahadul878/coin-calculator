@@ -54,8 +54,12 @@ export interface AuditLog {
 export interface DashboardStats {
   totalRequests: number;
   totalCoins: number;
+  totalPrice: number;
   totalPaid: number;
   totalDue: number;
+  paidCount: number;
+  dueCount: number;
+  partialCount: number;
   sendPending: number;
   sendDone: number;
   sendCancel: number;
@@ -68,6 +72,29 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface CoinRequestReportSummary {
+  totalRecords: number;
+  totalCoins: number;
+  totalPrice: number;
+  paidCount: number;
+  dueCount: number;
+  partialCount: number;
+  sendPending: number;
+  sendDone: number;
+  sendCancel: number;
+}
+
+export interface CoinRequestReport {
+  rows: CoinRequest[];
+  summary: CoinRequestReportSummary;
+  filters: {
+    dateFrom?: string;
+    dateTo?: string;
+    requestId?: string;
+    whoRequested?: string;
+  };
 }
 
 export interface ApiResponse<T = unknown> {

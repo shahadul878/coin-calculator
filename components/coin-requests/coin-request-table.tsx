@@ -171,7 +171,7 @@ export function CoinRequestTable() {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white">
+      <div className="surface-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

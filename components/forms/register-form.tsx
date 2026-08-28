@@ -29,15 +29,17 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="border-white/10 bg-white/95 shadow-premium-lg backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Create account</CardTitle>
-        <CardDescription>Register for Coin Requests</CardDescription>
+        <CardDescription>Get started with Coin Requests</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+              {error}
+            </div>
           )}
           <div className="space-y-2">
             <Label htmlFor="full_name">Full Name</Label>
@@ -55,9 +57,9 @@ export function RegisterForm() {
             {loading ? "Creating account..." : "Create account"}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-slate-500">
+        <p className="mt-5 text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-slate-900 hover:underline">
+          <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700">
             Sign in
           </Link>
         </p>

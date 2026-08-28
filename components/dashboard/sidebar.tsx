@@ -2,39 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Coins,
-  FileText,
-  User,
-  Settings,
-  LogOut,
-  Plus,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/coin-requests", label: "Coin Requests", icon: Coins },
-  { href: "/dashboard/reports", label: "Reports", icon: FileText },
-  { href: "/dashboard/profile", label: "Profile", icon: User },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-];
+import { Logo } from "@/components/brand/logo";
+import { dashboardNavItems, LogOut, Plus } from "./nav-config";
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
-      <div className="flex h-16 items-center border-b border-slate-200 px-6">
-        <Link href="/dashboard" className="text-lg font-semibold text-slate-900">
-          Coin Requests
-        </Link>
+    <aside className="hidden w-[260px] shrink-0 flex-col bg-navy-900 lg:flex">
+      <div className="flex h-[72px] items-center border-b border-white/[0.08] px-6">
+        <Logo variant="light" />
       </div>
+
       <nav className="flex-1 space-y-1 p-4">
-        {navItems.map((item) => {
+        <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Menu
+        </p>
+        {dashboardNavItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             pathname === item.href ||
@@ -44,27 +31,37 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-slate-100 text-slate-900"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-brand-500/15 text-brand-400 shadow-sm ring-1 ring-brand-500/20"
+                  : "text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  isActive ? "text-brand-400" : "text-slate-500 group-hover:text-slate-300"
+                )}
+              />
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <div className="space-y-2 border-t border-slate-200 p-4">
+
+      <div className="space-y-2 border-t border-white/[0.08] p-4">
         <Link href="/dashboard/coin-requests/new">
-          <Button className="w-full gap-2">
+          <Button className="w-full gap-2 shadow-glow">
             <Plus className="h-4 w-4" />
             New Request
           </Button>
         </Link>
         <form action={logoutAction}>
-          <Button variant="ghost" className="w-full justify-start gap-3" type="submit">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
+            type="submit"
+          >
             <LogOut className="h-4 w-4" />
             Logout
           </Button>

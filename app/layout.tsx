@@ -1,21 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { plusJakarta, geistMono } from "@/lib/fonts";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Coin Requests",
-  description: "Coin request management system",
+  description: "Professional coin request management system",
 };
 
 export default function RootLayout({
@@ -24,8 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
-      <body className="min-h-full antialiased">{children}</body>
+    <html
+      lang="en"
+      className={`${plusJakarta.variable} ${geistMono.variable} h-full`}
+    >
+      <body className="min-h-full font-sans antialiased">{children}</body>
       <Toaster />
     </html>
   );

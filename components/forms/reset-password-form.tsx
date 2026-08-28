@@ -29,7 +29,7 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="border-white/10 bg-white/95 shadow-premium-lg backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Reset password</CardTitle>
         <CardDescription>Enter your new password</CardDescription>
@@ -48,7 +48,7 @@ export function ResetPasswordForm() {
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-slate-500">
-          <Link href="/login" className="font-medium text-slate-900 hover:underline">
+          <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700">
             Back to sign in
           </Link>
         </p>

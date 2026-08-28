@@ -29,15 +29,17 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="border-white/10 bg-white/95 shadow-premium-lg backdrop-blur-xl">
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
-        <CardDescription>Enter your credentials to access Coin Requests</CardDescription>
+        <CardDescription>Enter your credentials to continue</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+              {error}
+            </div>
           )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -51,13 +53,13 @@ export function LoginForm() {
             {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
-        <div className="mt-4 space-y-2 text-center text-sm text-slate-500">
-          <Link href="/forgot-password" className="hover:text-slate-900">
+        <div className="mt-5 space-y-2 text-center text-sm text-slate-500">
+          <Link href="/forgot-password" className="font-medium text-brand-600 hover:text-brand-700">
             Forgot password?
           </Link>
           <p>
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-slate-900 hover:underline">
+            <Link href="/register" className="font-semibold text-brand-600 hover:text-brand-700">
               Register
             </Link>
           </p>

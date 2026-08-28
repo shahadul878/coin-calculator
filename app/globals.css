@@ -5,10 +5,51 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --sidebar: #0f172a;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --card: #ffffff;
+  --muted: #64748b;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-navy-900;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-xl border border-slate-200/80 bg-white shadow-premium;
+  }
+
+  .surface-card-hover {
+    @apply surface-card transition-shadow duration-200 hover:shadow-premium-lg;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-sm transition-all duration-200 hover:from-brand-600 hover:to-brand-700 hover:shadow-md active:scale-[0.98];
+  }
+
+  .input-premium {
+    @apply h-10 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm transition-colors placeholder:text-slate-400 focus-visible:border-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/20;
+  }
+
+  .table-premium thead th {
+    @apply bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500;
+  }
+
+  .table-premium tbody tr {
+    @apply border-b border-slate-100 transition-colors hover:bg-slate-50/60;
+  }
 }
