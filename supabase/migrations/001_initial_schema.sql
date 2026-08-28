@@ -92,7 +92,7 @@ CREATE TRIGGER update_calculations_updated_at
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, full_name)
+  INSERT INTO public.profiles (id, email, full_name)
   VALUES (
     NEW.id,
     NEW.email,
@@ -100,7 +100,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -131,6 +131,16 @@ CREATE POLICY "Users can view own profile"
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
   USING (id = auth.uid() OR is_admin());
+
+CREATE POLICY "Users can insert own profile"
+  ON profiles FOR INSERT
+  WITH CHECK (id = auth.uid());
+
+-- Grant Supabase Auth admin access for signup trigger
+GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+GRANT ALL ON TABLE public.profiles TO supabase_auth_admin;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO supabase_auth_admin;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM authenticated, anon, public;
 
 -- Coin requests policies
 CREATE POLICY "Users can view own coin requests"
