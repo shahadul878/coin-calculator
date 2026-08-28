@@ -10,6 +10,7 @@ function mapCoinRequest(row: Record<string, unknown>): CoinRequest {
     price: parseFloat(row.price as string),
     coin_amount: parseFloat(row.coin_amount as string),
     payment_status: row.payment_status as CoinRequest["payment_status"],
+    send_status: (row.send_status as CoinRequest["send_status"]) ?? "pending",
     payment_method: row.payment_method as CoinRequest["payment_method"],
     payment_method_other: row.payment_method_other as string | null,
     txn_id: row.txn_id as string | null,

@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       limit: parseInt(searchParams.get("limit") ?? "10"),
       search: searchParams.get("search") ?? undefined,
       paymentStatus: searchParams.get("payment_status") ?? undefined,
+      sendStatus: searchParams.get("send_status") ?? undefined,
       paymentMethod: searchParams.get("payment_method") ?? undefined,
       sortBy: searchParams.get("sort_by") ?? undefined,
       sortOrder: (searchParams.get("sort_order") as "asc" | "desc") ?? undefined,

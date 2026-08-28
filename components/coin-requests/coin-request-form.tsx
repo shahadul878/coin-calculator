@@ -39,6 +39,7 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
       price: initialData?.price ?? 0,
       coin_amount: initialData?.coin_amount ?? 0,
       payment_status: initialData?.payment_status ?? "due",
+      send_status: initialData?.send_status ?? "pending",
       payment_method: initialData?.payment_method ?? null,
       payment_method_other: initialData?.payment_method_other ?? null,
       txn_id: initialData?.txn_id ?? null,
@@ -47,6 +48,7 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
   });
 
   const paymentStatus = watch("payment_status");
+  const sendStatus = watch("send_status");
   const paymentMethod = watch("payment_method");
   const requiresPayment = paymentStatus === "paid" || paymentStatus === "partial";
 
@@ -122,6 +124,30 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
           />
           {errors.coin_amount && (
             <p className="text-sm text-red-600">{errors.coin_amount.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Coin Send Status</Label>
+          <Select
+            value={sendStatus}
+            onValueChange={(val) =>
+              setValue("send_status", val as CoinRequestInput["send_status"], {
+                shouldValidate: true,
+              })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select send status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="done">Done</SelectItem>
+              <SelectItem value="cancel">Cancel</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.send_status && (
+            <p className="text-sm text-red-600">{errors.send_status.message}</p>
           )}
         </div>
 

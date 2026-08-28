@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const paymentStatusSchema = z.enum(["paid", "due", "partial"]);
+export const sendStatusSchema = z.enum(["done", "pending", "cancel"]);
 export const paymentMethodSchema = z.enum(["bkash", "nagad", "others"]);
 
 const coinRequestBaseSchema = z.object({
@@ -11,6 +12,7 @@ const coinRequestBaseSchema = z.object({
   price: z.coerce.number().min(0, "Price must be >= 0"),
   coin_amount: z.coerce.number().positive("Coin amount must be > 0"),
   payment_status: paymentStatusSchema,
+  send_status: sendStatusSchema,
   payment_method: paymentMethodSchema.nullable().optional(),
   payment_method_other: z.string().max(100).nullable().optional(),
   txn_id: z.string().max(100).nullable().optional(),
@@ -86,6 +88,7 @@ export const coinRequestUpdateSchema = coinRequestBaseSchema
           price: data.price ?? 0,
           coin_amount: data.coin_amount ?? 1,
           payment_status: data.payment_status,
+          send_status: data.send_status ?? "pending",
           payment_method: data.payment_method,
           payment_method_other: data.payment_method_other,
           txn_id: data.txn_id,

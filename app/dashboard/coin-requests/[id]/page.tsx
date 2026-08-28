@@ -4,6 +4,7 @@ import { getCoinRequest } from "@/lib/services/coin-request.service";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { CoinRequestForm } from "@/components/coin-requests/coin-request-form";
 import { StatusBadge } from "@/components/coin-requests/status-badge";
+import { SendStatusBadge } from "@/components/coin-requests/send-status-badge";
 import { formatPaymentMethod } from "@/components/coin-requests/payment-method-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -57,8 +58,12 @@ export default async function CoinRequestDetailPage({
             <span>{request.coin_amount}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">Status</span>
+            <span className="text-slate-500">Payment Status</span>
             <StatusBadge status={request.payment_status} />
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">Coin Send Status</span>
+            <SendStatusBadge status={request.send_status} />
           </div>
           {request.payment_method && (
             <>

@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StatusBadge } from "./status-badge";
+import { SendStatusBadge } from "./send-status-badge";
 import { formatPaymentMethod } from "./payment-method-select";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { CoinRequest, PaginatedResponse } from "@/types";
@@ -41,6 +42,7 @@ export function CoinRequestTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
+  const [sendStatus, setSendStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -54,13 +56,14 @@ export function CoinRequestTable() {
     });
     if (search) params.set("search", search);
     if (paymentStatus) params.set("payment_status", paymentStatus);
+    if (sendStatus) params.set("send_status", sendStatus);
     if (paymentMethod) params.set("payment_method", paymentMethod);
 
     const res = await fetch(`/api/coin-requests?${params}`);
     const result = await res.json();
     if (result.success) setData(result.data);
     setLoading(false);
-  }, [page, search, paymentStatus, paymentMethod]);
+  }, [page, search, paymentStatus, sendStatus, paymentMethod]);
 
   useEffect(() => {
     fetchData();
@@ -126,6 +129,23 @@ export function CoinRequestTable() {
             </SelectContent>
           </Select>
           <Select
+            value={sendStatus}
+            onValueChange={(v) => {
+              setSendStatus(v === "all" ? "" : v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-36">
+              <SelectValue placeholder="Send Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Send</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="done">Done</SelectItem>
+              <SelectItem value="cancel">Cancel</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
             value={paymentMethod}
             onValueChange={(v) => {
               setPaymentMethod(v === "all" ? "" : v);
@@ -159,7 +179,8 @@ export function CoinRequestTable() {
               <TableHead>Who Requested</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Coins</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Payment</TableHead>
+              <TableHead>Send</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Txn ID</TableHead>
               <TableHead>Created</TableHead>
@@ -169,13 +190,13 @@ export function CoinRequestTable() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-slate-500">
+                <TableCell colSpan={10} className="text-center text-slate-500">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : data?.data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-slate-500">
+                <TableCell colSpan={10} className="text-center text-slate-500">
                   No coin requests found
                 </TableCell>
               </TableRow>
@@ -188,6 +209,9 @@ export function CoinRequestTable() {
                   <TableCell>{req.coin_amount}</TableCell>
                   <TableCell>
                     <StatusBadge status={req.payment_status} />
+                  </TableCell>
+                  <TableCell>
+                    <SendStatusBadge status={req.send_status} />
                   </TableCell>
                   <TableCell>
                     {formatPaymentMethod(req.payment_method, req.payment_method_other)}

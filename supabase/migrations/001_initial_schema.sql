@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS coin_requests (
   price NUMERIC(15, 2) NOT NULL CHECK (price >= 0),
   coin_amount NUMERIC(15, 4) NOT NULL CHECK (coin_amount > 0),
   payment_status TEXT NOT NULL DEFAULT 'due' CHECK (payment_status IN ('paid', 'due', 'partial')),
+  send_status TEXT NOT NULL DEFAULT 'pending' CHECK (send_status IN ('done', 'pending', 'cancel')),
   payment_method TEXT CHECK (payment_method IN ('bkash', 'nagad', 'others')),
   payment_method_other TEXT,
   txn_id TEXT,
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_coin_requests_user_id ON coin_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_request_id ON coin_requests(request_id);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_payment_status ON coin_requests(payment_status);
+CREATE INDEX IF NOT EXISTS idx_coin_requests_send_status ON coin_requests(send_status);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_payment_method ON coin_requests(payment_method);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_created_at ON coin_requests(created_at);
 CREATE INDEX IF NOT EXISTS idx_coin_requests_who_requested ON coin_requests(who_requested);

@@ -2,6 +2,8 @@ export type UserRole = "user" | "admin";
 
 export type PaymentStatus = "paid" | "due" | "partial";
 
+export type SendStatus = "done" | "pending" | "cancel";
+
 export type PaymentMethod = "bkash" | "nagad" | "others";
 
 export type AuditAction =
@@ -33,6 +35,7 @@ export interface CoinRequest {
   price: number;
   coin_amount: number;
   payment_status: PaymentStatus;
+  send_status: SendStatus;
   payment_method: PaymentMethod | null;
   payment_method_other: string | null;
   txn_id: string | null;

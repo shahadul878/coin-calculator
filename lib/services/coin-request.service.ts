@@ -10,6 +10,7 @@ interface ListParams {
   limit?: number;
   search?: string;
   paymentStatus?: string;
+  sendStatus?: string;
   paymentMethod?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
@@ -26,6 +27,7 @@ function mapCoinRequest(row: Record<string, unknown>): CoinRequest {
     price: parseFloat(row.price as string),
     coin_amount: parseFloat(row.coin_amount as string),
     payment_status: row.payment_status as CoinRequest["payment_status"],
+    send_status: (row.send_status as CoinRequest["send_status"]) ?? "pending",
     payment_method: row.payment_method as PaymentMethod | null,
     payment_method_other: row.payment_method_other as string | null,
     txn_id: row.txn_id as string | null,
@@ -56,6 +58,10 @@ export async function listCoinRequests(
 
   if (params.paymentStatus) {
     query = query.eq("payment_status", params.paymentStatus);
+  }
+
+  if (params.sendStatus) {
+    query = query.eq("send_status", params.sendStatus);
   }
 
   if (params.paymentMethod) {
@@ -131,6 +137,7 @@ export async function createCoinRequest(
       price: input.price,
       coin_amount: input.coin_amount,
       payment_status: input.payment_status,
+      send_status: input.send_status ?? "pending",
       ...paymentFields,
       notes: input.notes ?? null,
     })
@@ -163,6 +170,7 @@ export async function updateCoinRequest(
     price: input.price ?? existing.price,
     coin_amount: input.coin_amount ?? existing.coin_amount,
     payment_status: input.payment_status ?? existing.payment_status,
+    send_status: input.send_status ?? existing.send_status,
     payment_method: input.payment_method ?? existing.payment_method,
     payment_method_other:
       input.payment_method_other ?? existing.payment_method_other,
@@ -192,6 +200,7 @@ export async function updateCoinRequest(
       price: merged.price,
       coin_amount: merged.coin_amount,
       payment_status: merged.payment_status,
+      send_status: merged.send_status,
       ...paymentFields,
       notes: merged.notes ?? null,
     })
@@ -247,6 +256,7 @@ export async function duplicateCoinRequest(
     price: existing.price,
     coin_amount: existing.coin_amount,
     payment_status: "due",
+    send_status: "pending",
     payment_method: null,
     payment_method_other: null,
     txn_id: null,
