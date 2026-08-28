@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
+import { DashboardDateFilter } from "@/components/dashboard/dashboard-date-filter";
 import { StatusBadge } from "@/components/coin-requests/status-badge";
 import { SendStatusBadge } from "@/components/coin-requests/send-status-badge";
 import { Button } from "@/components/ui/button";
@@ -15,16 +17,29 @@ import {
 } from "@/components/ui/table";
 import { getCurrentUser } from "@/lib/permissions";
 import { getDashboardStats } from "@/lib/services/dashboard.service";
+import { dashboardDateFilterSchema } from "@/lib/validations/dashboard";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCoinAmount } from "@/lib/utils/coin-amount";
 import { redirect } from "next/navigation";
 
-export const revalidate = 30;
+interface PageProps {
+  searchParams: Promise<{ date_from?: string; date_to?: string }>;
+}
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const stats = await getDashboardStats(user.id);
+  const params = await searchParams;
+  const parsed = dashboardDateFilterSchema.safeParse({
+    date_from: params.date_from,
+    date_to: params.date_to,
+  });
+
+  const dateFrom = parsed.success ? parsed.data.date_from : undefined;
+  const dateTo = parsed.success ? parsed.data.date_to : undefined;
+
+  const stats = await getDashboardStats(user.id, { dateFrom, dateTo });
 
   return (
     <div>
@@ -37,6 +52,10 @@ export default async function DashboardPage() {
           </Link>
         }
       />
+
+      <Suspense fallback={null}>
+        <DashboardDateFilter />
+      </Suspense>
 
       <DashboardSummary stats={stats} />
 
@@ -52,7 +71,11 @@ export default async function DashboardPage() {
         <CardContent>
           {stats.recentCoinRequests.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-sm text-slate-500">No coin requests yet.</p>
+              <p className="text-sm text-slate-500">
+                {dateFrom || dateTo
+                  ? "No coin requests found for the selected dates."
+                  : "No coin requests yet."}
+              </p>
               <Link href="/dashboard/coin-requests/new">
                 <Button className="mt-4" size="sm">
                   Create First Request
@@ -84,7 +107,7 @@ export default async function DashboardPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{req.who_requested}</TableCell>
-                    <TableCell>{req.coin_amount}</TableCell>
+                    <TableCell>{formatCoinAmount(req.coin_amount)}</TableCell>
                     <TableCell>
                       <StatusBadge status={req.payment_status} />
                     </TableCell>

@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { toEndOfDay, toStartOfDay } from "@/lib/utils/date-range";
 import type { DashboardStats, CoinRequest } from "@/types";
+
+export interface DashboardFilters {
+  dateFrom?: string;
+  dateTo?: string;
+}
 
 const DASHBOARD_COLUMNS =
   "id, request_id, who_requested, price, coin_amount, payment_status, send_status, created_at";
@@ -41,14 +47,27 @@ function toRecentCoinRequest(row: DashboardRow): CoinRequest {
   };
 }
 
-export async function getDashboardStats(userId: string): Promise<DashboardStats> {
+export async function getDashboardStats(
+  userId: string,
+  filters: DashboardFilters = {}
+): Promise<DashboardStats> {
   const supabase = await createClient();
 
-  const { data: requests, error } = await supabase
+  let query = supabase
     .from("coin_requests")
     .select(DASHBOARD_COLUMNS)
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  if (filters.dateFrom) {
+    query = query.gte("created_at", toStartOfDay(filters.dateFrom));
+  }
+
+  if (filters.dateTo) {
+    query = query.lte("created_at", toEndOfDay(filters.dateTo));
+  }
+
+  const { data: requests, error } = await query;
 
   if (error) throw error;
 
@@ -98,5 +117,9 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
     sendDone,
     sendCancel,
     recentCoinRequests: rows.slice(0, 8).map(toRecentCoinRequest),
+    filters: {
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+    },
   };
 }

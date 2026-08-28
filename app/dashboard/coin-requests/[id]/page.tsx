@@ -8,6 +8,7 @@ import { SendStatusBadge } from "@/components/coin-requests/send-status-badge";
 import { formatPaymentMethod } from "@/components/coin-requests/payment-method-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCoinAmount } from "@/lib/utils/coin-amount";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -55,7 +56,7 @@ export default async function CoinRequestDetailPage({
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Coins</span>
-            <span>{request.coin_amount}</span>
+            <span>{formatCoinAmount(request.coin_amount)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Payment Status</span>

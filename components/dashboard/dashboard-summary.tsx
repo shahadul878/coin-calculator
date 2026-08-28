@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { formatCurrency } from "@/lib/utils";
+import { formatCoinAmount } from "@/lib/utils/coin-amount";
 import type { DashboardStats } from "@/types";
 import {
   Coins,
@@ -57,7 +58,7 @@ export function DashboardSummary({ stats }: DashboardSummaryProps) {
           />
           <StatsCard
             title="Total Coins"
-            value={stats.totalCoins.toLocaleString()}
+            value={formatCoinAmount(stats.totalCoins)}
             icon={Coins}
             accent="gold"
           />

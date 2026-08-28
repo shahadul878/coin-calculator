@@ -64,6 +64,10 @@ export interface DashboardStats {
   sendDone: number;
   sendCancel: number;
   recentCoinRequests: CoinRequest[];
+  filters?: {
+    dateFrom?: string;
+    dateTo?: string;
+  };
 }
 
 export interface PaginatedResponse<T> {

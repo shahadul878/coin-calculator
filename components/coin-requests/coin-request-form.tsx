@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { coinRequestSchema, type CoinRequestInput } from "@/lib/validations";
+import { coinRequestSchema, type CoinRequestFormInput, type CoinRequestInput } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { CoinRequest } from "@/types";
+import { formatCoinAmount } from "@/lib/utils/coin-amount";
 
 interface CoinRequestFormProps {
   initialData?: CoinRequest;
@@ -31,13 +32,15 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<CoinRequestInput>({
+  } = useForm<CoinRequestFormInput, unknown, CoinRequestInput>({
     resolver: zodResolver(coinRequestSchema),
     defaultValues: {
       request_id: initialData?.request_id ?? "",
       who_requested: initialData?.who_requested ?? "",
       price: initialData?.price ?? 0,
-      coin_amount: initialData?.coin_amount ?? 0,
+      coin_amount: initialData?.coin_amount
+        ? formatCoinAmount(initialData.coin_amount)
+        : "",
       payment_status: initialData?.payment_status ?? "due",
       send_status: initialData?.send_status ?? "pending",
       payment_method: initialData?.payment_method ?? null,
@@ -117,11 +120,14 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
           <Label htmlFor="coin_amount">How Much Coin</Label>
           <Input
             id="coin_amount"
-            type="number"
-            step="0.0001"
-            min="0"
+            type="text"
+            inputMode="decimal"
+            placeholder="e.g. 1000, 1K, 1lac, 1M"
             {...register("coin_amount")}
           />
+          <p className="text-xs text-slate-500">
+            Supports shorthand: 1K (thousand), 1lac (lakh), 1M (million)
+          </p>
           {errors.coin_amount && (
             <p className="text-sm text-red-600">{errors.coin_amount.message}</p>
           )}

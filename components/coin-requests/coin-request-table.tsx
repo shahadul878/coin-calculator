@@ -34,6 +34,7 @@ import { StatusBadge } from "./status-badge";
 import { SendStatusBadge } from "./send-status-badge";
 import { formatPaymentMethod } from "./payment-method-select";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCoinAmount } from "@/lib/utils/coin-amount";
 import type { CoinRequest, PaginatedResponse } from "@/types";
 
 export function CoinRequestTable() {
@@ -206,7 +207,7 @@ export function CoinRequestTable() {
                   <TableCell className="font-mono">{req.request_id}</TableCell>
                   <TableCell>{req.who_requested}</TableCell>
                   <TableCell>{formatCurrency(req.price)}</TableCell>
-                  <TableCell>{req.coin_amount}</TableCell>
+                  <TableCell>{formatCoinAmount(req.coin_amount)}</TableCell>
                   <TableCell>
                     <StatusBadge status={req.payment_status} />
                   </TableCell>

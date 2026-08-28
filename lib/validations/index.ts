@@ -1,8 +1,20 @@
 import { z } from "zod";
+import { parseCoinAmount } from "@/lib/utils/coin-amount";
 
 export const paymentStatusSchema = z.enum(["paid", "due", "partial"]);
 export const sendStatusSchema = z.enum(["done", "pending", "cancel"]);
 export const paymentMethodSchema = z.enum(["bkash", "nagad", "others"]);
+
+const coinAmountSchema = z
+  .union([z.string(), z.number()])
+  .transform((value) => parseCoinAmount(value))
+  .pipe(
+    z
+      .number({
+        invalid_type_error: "Invalid coin amount. Use 1000, 1K, 1lac, or 1M",
+      })
+      .positive("Coin amount must be > 0")
+  );
 
 const coinRequestBaseSchema = z.object({
   request_id: z
@@ -10,7 +22,7 @@ const coinRequestBaseSchema = z.object({
     .regex(/^\d{6}$/, "Request ID must be a 6-digit number (e.g. 000001)"),
   who_requested: z.string().min(1, "Who requested is required").max(255),
   price: z.coerce.number().min(0, "Price must be >= 0"),
-  coin_amount: z.coerce.number().positive("Coin amount must be > 0"),
+  coin_amount: coinAmountSchema,
   payment_status: paymentStatusSchema,
   send_status: sendStatusSchema,
   payment_method: paymentMethodSchema.nullable().optional(),
@@ -100,6 +112,7 @@ export const coinRequestUpdateSchema = coinRequestBaseSchema
   });
 
 export type CoinRequestInput = z.infer<typeof coinRequestSchema>;
+export type CoinRequestFormInput = z.input<typeof coinRequestSchema>;
 
 export function normalizePaymentFields(
   data: Partial<CoinRequestInput>
