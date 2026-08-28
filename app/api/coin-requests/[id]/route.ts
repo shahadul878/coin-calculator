@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, hasAdminScope } from "@/lib/permissions";
 import {
   successResponse,
   unauthorizedError,
@@ -24,8 +24,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     const user = await getCurrentUser();
     if (!user) return unauthorizedError();
 
+    const adminScope = hasAdminScope(user.profile);
     const { id } = await params;
-    const data = await getCoinRequest(id, user.id);
+    const data = await getCoinRequest(id, user.id, { adminScope });
     if (!data) return notFoundError("Coin request");
 
     return successResponse(data);
@@ -39,6 +40,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const user = await getCurrentUser();
     if (!user) return unauthorizedError();
 
+    const adminScope = hasAdminScope(user.profile);
     const { id } = await params;
     const body = await request.json();
     const parsed = coinRequestUpdateSchema.safeParse(body);
@@ -48,7 +50,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     try {
-      const data = await updateCoinRequest(id, user.id, parsed.data);
+      const data = await updateCoinRequest(id, user.id, parsed.data, { adminScope });
       return successResponse(data);
     } catch (err) {
       if (err instanceof Error) {
@@ -67,11 +69,12 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     const user = await getCurrentUser();
     if (!user) return unauthorizedError();
 
+    const adminScope = hasAdminScope(user.profile);
     const { id } = await params;
-    const existing = await getCoinRequest(id, user.id);
+    const existing = await getCoinRequest(id, user.id, { adminScope });
     if (!existing) return notFoundError("Coin request");
 
-    await deleteCoinRequest(id, user.id);
+    await deleteCoinRequest(id, user.id, { adminScope });
     return successResponse({ deleted: true });
   } catch {
     return serverError();

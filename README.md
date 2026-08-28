@@ -156,8 +156,22 @@ types/             # TypeScript types
 
 ## Admin Access
 
-After registering, promote a user to admin in Supabase SQL Editor:
+Super admins use `profiles.role = 'admin'`. They can view and manage all users' coin requests (enforced in RLS via `is_admin()` and in API/services via `hasAdminScope()`).
+
+After registering, promote a user in one of these ways:
+
+**Script (recommended):**
+
+```bash
+npm run promote:super-admin -- your@email.com
+# or set SUPER_ADMIN_EMAIL in .env.local and run:
+npm run promote:super-admin
+```
+
+**Supabase SQL Editor:**
 
 ```sql
 UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
 ```
+
+Apply migration `006_super_admin_access.sql` on remote projects so admins can write status logs on any user's requests.

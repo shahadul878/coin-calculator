@@ -21,8 +21,15 @@ export async function getCurrentUser(): Promise<{
   return { id: user.id, profile: profile as Profile | null };
 }
 
+/** Super admin — profiles.role = 'admin' with full cross-user access via RLS. */
 export function isAdmin(profile: Profile | null): boolean {
   return profile?.role === "admin";
+}
+
+export const isSuperAdmin = isAdmin;
+
+export function hasAdminScope(profile: Profile | null): boolean {
+  return isAdmin(profile);
 }
 
 export function canAccessResource(

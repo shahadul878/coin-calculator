@@ -11,6 +11,7 @@ import type { CoinRequestInput } from "@/lib/validations";
 
 interface ListParams {
   userId: string;
+  adminScope?: boolean;
   page?: number;
   limit?: number;
   search?: string;
@@ -21,6 +22,10 @@ interface ListParams {
   sortOrder?: "asc" | "desc";
   dateFrom?: string;
   dateTo?: string;
+}
+
+interface AccessOptions {
+  adminScope?: boolean;
 }
 
 function mapCoinRequest(row: Record<string, unknown>): CoinRequest {
@@ -50,10 +55,11 @@ export async function listCoinRequests(
   const limit = params.limit ?? 10;
   const offset = (page - 1) * limit;
 
-  let query = supabase
-    .from("coin_requests")
-    .select("*", { count: "exact" })
-    .eq("user_id", params.userId);
+  let query = supabase.from("coin_requests").select("*", { count: "exact" });
+
+  if (!params.adminScope) {
+    query = query.eq("user_id", params.userId);
+  }
 
   if (params.search) {
     query = query.or(
@@ -101,15 +107,17 @@ export async function listCoinRequests(
 
 export async function getCoinRequest(
   id: string,
-  userId: string
+  userId: string,
+  options: AccessOptions = {}
 ): Promise<CoinRequest | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("coin_requests")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", userId)
-    .single();
+  let query = supabase.from("coin_requests").select("*").eq("id", id);
+
+  if (!options.adminScope) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error } = await query.single();
 
   if (error) return null;
   return mapCoinRequest(data);
@@ -173,12 +181,15 @@ export async function createCoinRequest(
 export async function updateCoinRequest(
   id: string,
   userId: string,
-  input: Partial<CoinRequestInput>
+  input: Partial<CoinRequestInput>,
+  options: AccessOptions = {}
 ): Promise<CoinRequest> {
   const supabase = await createClient();
 
-  const existing = await getCoinRequest(id, userId);
+  const existing = await getCoinRequest(id, userId, options);
   if (!existing) throw new Error("Coin request not found");
+
+  const ownerUserId = existing.user_id;
 
   const merged: CoinRequestInput = {
     request_id: input.request_id ?? existing.request_id,
@@ -198,7 +209,7 @@ export async function updateCoinRequest(
     const { data: duplicate } = await supabase
       .from("coin_requests")
       .select("id")
-      .eq("user_id", userId)
+      .eq("user_id", ownerUserId)
       .eq("request_id", input.request_id)
       .neq("id", id)
       .maybeSingle();
@@ -208,7 +219,7 @@ export async function updateCoinRequest(
 
   const paymentFields = normalizePaymentFields(merged);
 
-  const { data, error } = await supabase
+  let updateQuery = supabase
     .from("coin_requests")
     .update({
       request_id: merged.request_id,
@@ -220,10 +231,13 @@ export async function updateCoinRequest(
       ...paymentFields,
       notes: merged.notes ?? null,
     })
-    .eq("id", id)
-    .eq("user_id", userId)
-    .select()
-    .single();
+    .eq("id", id);
+
+  if (!options.adminScope) {
+    updateQuery = updateQuery.eq("user_id", userId);
+  }
+
+  const { data, error } = await updateQuery.select().single();
 
   if (error) throw error;
 
@@ -249,13 +263,19 @@ export async function updateCoinRequest(
   return mapCoinRequest(data);
 }
 
-export async function deleteCoinRequest(id: string, userId: string): Promise<void> {
+export async function deleteCoinRequest(
+  id: string,
+  userId: string,
+  options: AccessOptions = {}
+): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("coin_requests")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", userId);
+  let query = supabase.from("coin_requests").delete().eq("id", id);
+
+  if (!options.adminScope) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { error } = await query;
 
   if (error) throw error;
 
@@ -264,17 +284,20 @@ export async function deleteCoinRequest(id: string, userId: string): Promise<voi
 
 export async function duplicateCoinRequest(
   id: string,
-  userId: string
+  userId: string,
+  options: AccessOptions = {}
 ): Promise<CoinRequest> {
-  const existing = await getCoinRequest(id, userId);
+  const existing = await getCoinRequest(id, userId, options);
   if (!existing) throw new Error("Coin request not found");
+
+  const ownerUserId = existing.user_id;
 
   // Generate next request_id suggestion - user must provide unique ID on duplicate
   const supabase = await createClient();
   const { data: latest } = await supabase
     .from("coin_requests")
     .select("request_id")
-    .eq("user_id", userId)
+    .eq("user_id", ownerUserId)
     .order("request_id", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -283,7 +306,7 @@ export async function duplicateCoinRequest(
     ? String(parseInt(latest.request_id, 10) + 1).padStart(6, "0")
     : "000001";
 
-  return createCoinRequest(userId, {
+  return createCoinRequest(ownerUserId, {
     request_id: nextNum,
     who_requested: existing.who_requested,
     price: existing.price,

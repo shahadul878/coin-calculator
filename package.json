@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "seed:demo": "npx tsx scripts/seed-demo-data.ts"
+    "seed:demo": "npx tsx scripts/seed-demo-data.ts",
+    "promote:super-admin": "npx tsx scripts/promote-super-admin.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

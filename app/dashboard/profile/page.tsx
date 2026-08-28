@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, isSuperAdmin } from "@/lib/permissions";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -22,7 +22,9 @@ export default async function ProfilePage() {
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Role</span>
-            <span className="capitalize">{user.profile?.role ?? "user"}</span>
+            <span>
+              {isSuperAdmin(user.profile) ? "Super Admin" : user.profile?.role ?? "user"}
+            </span>
           </div>
         </CardContent>
       </Card>

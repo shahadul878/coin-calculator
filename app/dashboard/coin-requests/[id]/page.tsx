@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, hasAdminScope } from "@/lib/permissions";
 import { getCoinRequest, getCoinRequestStatusLogs } from "@/lib/services/coin-request.service";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { CoinRequestForm } from "@/components/coin-requests/coin-request-form";
@@ -23,13 +23,14 @@ export default async function CoinRequestDetailPage({
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  const adminScope = hasAdminScope(user.profile);
   const { id } = await params;
   const { edit } = await searchParams;
-  const request = await getCoinRequest(id, user.id);
+  const request = await getCoinRequest(id, user.id, { adminScope });
 
   if (!request) notFound();
 
-  const statusLogs = await getCoinRequestStatusLogs(id, user.id);
+  const statusLogs = await getCoinRequestStatusLogs(id, user.id, { adminScope });
 
   if (edit === "true") {
     return (

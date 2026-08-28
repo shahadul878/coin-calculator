@@ -5,6 +5,7 @@ import type { DashboardStats, CoinRequest } from "@/types";
 export interface DashboardFilters {
   dateFrom?: string;
   dateTo?: string;
+  adminScope?: boolean;
 }
 
 const DASHBOARD_COLUMNS =
@@ -56,8 +57,11 @@ export async function getDashboardStats(
   let query = supabase
     .from("coin_requests")
     .select(DASHBOARD_COLUMNS)
-    .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  if (!filters.adminScope) {
+    query = query.eq("user_id", userId);
+  }
 
   if (filters.dateFrom) {
     query = query.gte("created_at", toStartOfDay(filters.dateFrom));

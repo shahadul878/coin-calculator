@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, hasAdminScope } from "@/lib/permissions";
 import { generateCoinRequestReport } from "@/lib/services/report.service";
 import { coinRequestReportQuerySchema } from "@/lib/validations/report";
 import { generateCoinRequestReportPdf } from "@/lib/utils/report-pdf";
@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
 
     const report = await generateCoinRequestReport({
       userId: user.id,
+      adminScope: hasAdminScope(user.profile),
       dateFrom: parsed.data.date_from,
       dateTo: parsed.data.date_to,
       requestId: parsed.data.request_id,

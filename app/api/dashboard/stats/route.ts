@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, hasAdminScope } from "@/lib/permissions";
 import {
   successResponse,
   unauthorizedError,
@@ -11,7 +11,9 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return unauthorizedError();
 
-    const stats = await getDashboardStats(user.id);
+    const stats = await getDashboardStats(user.id, {
+      adminScope: hasAdminScope(user.profile),
+    });
     return successResponse(stats);
   } catch {
     return serverError();

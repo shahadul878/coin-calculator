@@ -3,6 +3,7 @@ import type { CoinRequest, CoinRequestReport, CoinRequestReportSummary } from "@
 
 export interface ReportFilters {
   userId: string;
+  adminScope?: boolean;
   dateFrom?: string;
   dateTo?: string;
   requestId?: string;
@@ -55,11 +56,13 @@ export async function generateCoinRequestReport(
 ): Promise<CoinRequestReport> {
   const supabase = await createClient();
 
-  let query = supabase
-    .from("coin_requests")
-    .select("*")
-    .eq("user_id", filters.userId)
-    .order("created_at", { ascending: false });
+  let query = supabase.from("coin_requests").select("*").order("created_at", {
+    ascending: false,
+  });
+
+  if (!filters.adminScope) {
+    query = query.eq("user_id", filters.userId);
+  }
 
   if (filters.dateFrom) {
     query = query.gte("created_at", toStartOfDay(filters.dateFrom));

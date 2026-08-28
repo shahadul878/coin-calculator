@@ -7,6 +7,9 @@
 -- Optional env:
 --   DEMO_USER_EMAIL=your@email.com
 --
--- To create an admin user:
+-- Super admin (full access to all users' data):
 -- 1. Register via the app
--- 2. Run: UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';
+-- 2. Run: npm run promote:super-admin -- your@email.com
+--    Or set SUPER_ADMIN_EMAIL in .env.local and run: npm run promote:super-admin
+-- 3. Or in Supabase SQL Editor:
+--    UPDATE profiles SET role = 'admin' WHERE email = 'your@email.com';

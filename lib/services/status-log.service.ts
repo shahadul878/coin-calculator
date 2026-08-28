@@ -36,16 +36,21 @@ export async function logCoinStatusChanges(
 
 export async function getCoinRequestStatusLogs(
   coinRequestId: string,
-  userId: string
+  userId: string,
+  options: { adminScope?: boolean } = {}
 ): Promise<CoinRequestStatusLog[]> {
   const supabase = await createClient();
 
-  const { data: request } = await supabase
+  let requestQuery = supabase
     .from("coin_requests")
     .select("id")
-    .eq("id", coinRequestId)
-    .eq("user_id", userId)
-    .maybeSingle();
+    .eq("id", coinRequestId);
+
+  if (!options.adminScope) {
+    requestQuery = requestQuery.eq("user_id", userId);
+  }
+
+  const { data: request } = await requestQuery.maybeSingle();
 
   if (!request) return [];
 

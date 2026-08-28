@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, hasAdminScope } from "@/lib/permissions";
 import { getDashboardStats } from "@/lib/services/dashboard.service";
 import { dashboardDateFilterSchema } from "@/lib/validations/dashboard";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -39,13 +39,18 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const dateFrom = parsed.success ? parsed.data.date_from : undefined;
   const dateTo = parsed.success ? parsed.data.date_to : undefined;
 
-  const stats = await getDashboardStats(user.id, { dateFrom, dateTo });
+  const adminScope = hasAdminScope(user.profile);
+  const stats = await getDashboardStats(user.id, { dateFrom, dateTo, adminScope });
 
   return (
     <div>
       <PageHeader
         title="Dashboard"
-        description="Overview of your coin requests"
+        description={
+          adminScope
+            ? "Overview of all coin requests (super admin)"
+            : "Overview of your coin requests"
+        }
         action={
           <Link href="/dashboard/coin-requests/new">
             <Button>New Coin Request</Button>

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/permissions";
+import { getCurrentUser, hasAdminScope } from "@/lib/permissions";
 import {
   successResponse,
   unauthorizedError,
@@ -19,8 +19,10 @@ export async function GET(request: NextRequest) {
     if (!user) return unauthorizedError();
 
     const { searchParams } = request.nextUrl;
+    const adminScope = hasAdminScope(user.profile);
     const result = await listCoinRequests({
       userId: user.id,
+      adminScope,
       page: parseInt(searchParams.get("page") ?? "1"),
       limit: parseInt(searchParams.get("limit") ?? "10"),
       search: searchParams.get("search") ?? undefined,
