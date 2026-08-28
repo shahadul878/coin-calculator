@@ -3,16 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { resetPasswordAction } from "@/lib/actions/auth";
+import { AuthAlert, AuthCard, AuthFooterLinks } from "@/components/auth/auth-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
@@ -29,30 +23,41 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <Card className="border-white/10 bg-white/95 shadow-premium-lg backdrop-blur-xl">
-      <CardHeader>
-        <CardTitle>Reset password</CardTitle>
-        <CardDescription>Enter your new password</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
-            <Input id="password" name="password" type="password" required minLength={6} />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Updating..." : "Update password"}
-          </Button>
-        </form>
-        <p className="mt-4 text-center text-sm text-slate-500">
-          <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+    <AuthCard
+      title="Reset password"
+      description="Choose a strong password to secure your account."
+      footer={
+        <AuthFooterLinks>
+          <Link
+            href="/login"
+            className="font-semibold text-brand-600 transition-colors hover:text-brand-700"
+          >
             Back to sign in
           </Link>
-        </p>
-      </CardContent>
-    </Card>
+        </AuthFooterLinks>
+      }
+    >
+      <form action={handleSubmit} className="space-y-5">
+        {error && <AuthAlert variant="error">{error}</AuthAlert>}
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-slate-700">
+            New password
+          </Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            className="h-11"
+            autoComplete="new-password"
+          />
+          <p className="text-xs text-slate-400">Minimum 6 characters</p>
+        </div>
+        <Button type="submit" className="h-11 w-full" size="lg" disabled={loading}>
+          {loading ? "Updating..." : "Update password"}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }
