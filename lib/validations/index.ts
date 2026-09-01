@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parseCoinAmount } from "@/lib/utils/coin-amount";
+import { REQUEST_ID_EXAMPLE, REQUEST_ID_LENGTH } from "@/lib/utils/request-id";
 
 export const paymentStatusSchema = z.enum(["paid", "due", "partial"]);
 export const sendStatusSchema = z.enum(["done", "pending", "cancel"]);
@@ -19,7 +20,11 @@ const coinAmountSchema = z
 const coinRequestBaseSchema = z.object({
   request_id: z
     .string()
-    .regex(/^\d{6}$/, "Request ID must be a 6-digit number (e.g. 000001)"),
+    .min(1, "Request ID is required")
+    .regex(
+      new RegExp(`^\\d{1,${REQUEST_ID_LENGTH}}$`),
+      `Request ID must be 1-${REQUEST_ID_LENGTH} digits (e.g. ${REQUEST_ID_EXAMPLE})`
+    ),
   who_requested: z.string().min(1, "Who requested is required").max(255),
   price: z.coerce.number().min(0, "Price must be >= 0"),
   coin_amount: coinAmountSchema,
@@ -95,7 +100,7 @@ export const coinRequestUpdateSchema = coinRequestBaseSchema
     if (data.payment_status !== undefined) {
       validatePaymentFields(
         {
-          request_id: data.request_id ?? "000000",
+          request_id: data.request_id ?? "1",
           who_requested: data.who_requested ?? "",
           price: data.price ?? 0,
           coin_amount: data.coin_amount ?? 1,

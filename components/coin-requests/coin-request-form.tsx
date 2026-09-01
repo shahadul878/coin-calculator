@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { coinRequestSchema, type CoinRequestFormInput, type CoinRequestInput } from "@/lib/validations";
+import { REQUEST_ID_EXAMPLE, REQUEST_ID_LENGTH } from "@/lib/utils/request-id";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,9 +99,12 @@ export function CoinRequestForm({ initialData, mode = "create" }: CoinRequestFor
           <Label htmlFor="request_id">ID</Label>
           <Input
             id="request_id"
-            placeholder="000001"
-            maxLength={6}
-            {...register("request_id")}
+            inputMode="numeric"
+            placeholder={REQUEST_ID_EXAMPLE}
+            maxLength={REQUEST_ID_LENGTH}
+            {...register("request_id", {
+              setValueAs: (value) => String(value).replace(/\D/g, ""),
+            })}
           />
           {errors.request_id && (
             <p className="text-sm text-red-600">{errors.request_id.message}</p>

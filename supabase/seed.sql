@@ -3,6 +3,7 @@
 --
 -- Preferred: run the Node seed script (200 demo coin requests)
 --   npm run seed:demo -- --reset
+--   npm run seed:demo -- --clear   (remove demo rows with request_id 1-200 only)
 --
 -- Optional env:
 --   DEMO_USER_EMAIL=your@email.com

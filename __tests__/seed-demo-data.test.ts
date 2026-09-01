@@ -14,8 +14,8 @@ describe("generateDemoCoinRequests", () => {
 
     expect(rows).toHaveLength(200);
     expect(summary.uniqueRequestIds).toBe(200);
-    expect(rows[0].request_id).toBe("000001");
-    expect(rows[199].request_id).toBe("000200");
+    expect(rows[0].request_id).toBe("1");
+    expect(rows[199].request_id).toBe("200");
   });
 
   it("assigns all rows to the target user", () => {

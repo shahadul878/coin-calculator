@@ -85,15 +85,8 @@ export function CoinRequestTable() {
     setDeleting(false);
   }
 
-  async function handleDuplicate(id: string) {
-    const res = await fetch(`/api/coin-requests/${id}/duplicate`, { method: "POST" });
-    const result = await res.json();
-    if (result.success) {
-      toast.success("Request duplicated");
-      fetchData();
-    } else {
-      toast.error(result.error ?? "Duplicate failed");
-    }
+  function handleDuplicate(id: string) {
+    router.push(`/dashboard/coin-requests/new?duplicateFrom=${id}`);
   }
 
   return (
@@ -205,7 +198,9 @@ export function CoinRequestTable() {
             ) : (
               data?.data.map((req) => (
                 <TableRow key={req.id}>
-                  <TableCell className="font-mono">{req.request_id}</TableCell>
+                  <TableCell className="font-mono text-xs whitespace-nowrap">
+                    {req.request_id}
+                  </TableCell>
                   <TableCell>{req.who_requested}</TableCell>
                   <TableCell>{formatCurrency(req.price)}</TableCell>
                   <TableCell>{formatCoinAmount(req.coin_amount)}</TableCell>

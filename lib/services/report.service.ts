@@ -73,8 +73,7 @@ export async function generateCoinRequestReport(
   }
 
   if (filters.requestId) {
-    const paddedId = filters.requestId.padStart(6, "0");
-    query = query.ilike("request_id", `%${paddedId}%`);
+    query = query.ilike("request_id", `%${filters.requestId}%`);
   }
 
   if (filters.whoRequested) {

@@ -282,42 +282,4 @@ export async function deleteCoinRequest(
   await logAudit(userId, "DELETE_COIN_REQUEST", "coin_request", id);
 }
 
-export async function duplicateCoinRequest(
-  id: string,
-  userId: string,
-  options: AccessOptions = {}
-): Promise<CoinRequest> {
-  const existing = await getCoinRequest(id, userId, options);
-  if (!existing) throw new Error("Coin request not found");
-
-  const ownerUserId = existing.user_id;
-
-  // Generate next request_id suggestion - user must provide unique ID on duplicate
-  const supabase = await createClient();
-  const { data: latest } = await supabase
-    .from("coin_requests")
-    .select("request_id")
-    .eq("user_id", ownerUserId)
-    .order("request_id", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const nextNum = latest
-    ? String(parseInt(latest.request_id, 10) + 1).padStart(6, "0")
-    : "000001";
-
-  return createCoinRequest(ownerUserId, {
-    request_id: nextNum,
-    who_requested: existing.who_requested,
-    price: existing.price,
-    coin_amount: existing.coin_amount,
-    payment_status: "due",
-    send_status: "pending",
-    payment_method: null,
-    payment_method_other: null,
-    txn_id: null,
-    notes: existing.notes,
-  });
-}
-
 export { getCoinRequestStatusLogs };

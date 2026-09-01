@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseCoinAmount, formatCoinAmount } from "@/lib/utils/coin-amount";
 import { coinRequestSchema } from "@/lib/validations";
+import { REQUEST_ID_EXAMPLE } from "@/lib/utils/request-id";
 
 describe("parseCoinAmount", () => {
   it("parses plain numbers", () => {
@@ -45,9 +46,33 @@ describe("formatCoinAmount", () => {
 });
 
 describe("coinRequestSchema", () => {
+  it("accepts short numeric request IDs", () => {
+    const result = coinRequestSchema.safeParse({
+      request_id: "42",
+      who_requested: "John",
+      price: 100,
+      coin_amount: "1K",
+      payment_status: "due",
+      send_status: "pending",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects request IDs longer than 20 digits", () => {
+    const result = coinRequestSchema.safeParse({
+      request_id: "123456789012345678901",
+      who_requested: "John",
+      price: 100,
+      coin_amount: "1K",
+      payment_status: "due",
+      send_status: "pending",
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("requires txn_id and payment_method when paid", () => {
     const result = coinRequestSchema.safeParse({
-      request_id: "000001",
+      request_id: REQUEST_ID_EXAMPLE,
       who_requested: "John",
       price: 100,
       coin_amount: "1K",
@@ -59,7 +84,7 @@ describe("coinRequestSchema", () => {
 
   it("accepts valid paid request with coin shorthand", () => {
     const result = coinRequestSchema.safeParse({
-      request_id: "000001",
+      request_id: REQUEST_ID_EXAMPLE,
       who_requested: "John",
       price: 100,
       coin_amount: "1lac",
@@ -76,7 +101,7 @@ describe("coinRequestSchema", () => {
 
   it("clears payment fields for due status", () => {
     const result = coinRequestSchema.safeParse({
-      request_id: "000001",
+      request_id: REQUEST_ID_EXAMPLE,
       who_requested: "John",
       price: 100,
       coin_amount: "1M",
@@ -91,7 +116,7 @@ describe("coinRequestSchema", () => {
 
   it("requires payment_method_other when others selected", () => {
     const result = coinRequestSchema.safeParse({
-      request_id: "000001",
+      request_id: REQUEST_ID_EXAMPLE,
       who_requested: "John",
       price: 100,
       coin_amount: "2K",

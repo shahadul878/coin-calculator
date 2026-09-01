@@ -11,6 +11,7 @@ import { StatsCard } from "@/components/dashboard/stats-card";
 import { StatusBadge } from "@/components/coin-requests/status-badge";
 import { SendStatusBadge } from "@/components/coin-requests/send-status-badge";
 import { formatPaymentMethod } from "@/components/coin-requests/payment-method-select";
+import { REQUEST_ID_EXAMPLE, REQUEST_ID_LENGTH } from "@/lib/utils/request-id";
 import {
   Table,
   TableBody,
@@ -166,8 +167,8 @@ export function CoinRequestReportPanel() {
               <Label htmlFor="request-id">Request ID</Label>
               <Input
                 id="request-id"
-                placeholder="e.g. 000001"
-                maxLength={6}
+                placeholder={`e.g. ${REQUEST_ID_EXAMPLE}`}
+                maxLength={REQUEST_ID_LENGTH}
                 value={requestId}
                 onChange={(e) => setRequestId(e.target.value.replace(/\D/g, ""))}
               />
@@ -308,7 +309,9 @@ export function CoinRequestReportPanel() {
                     <TableBody>
                       {report.rows.map((row) => (
                         <TableRow key={row.id}>
-                          <TableCell className="font-mono">{row.request_id}</TableCell>
+                          <TableCell className="font-mono text-xs whitespace-nowrap">
+                            {row.request_id}
+                          </TableCell>
                           <TableCell>{row.who_requested}</TableCell>
                           <TableCell>{formatCurrency(row.price)}</TableCell>
                           <TableCell>{formatCoinAmount(row.coin_amount)}</TableCell>

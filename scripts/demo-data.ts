@@ -1,3 +1,4 @@
+
 export type DemoPaymentStatus = "paid" | "due" | "partial";
 export type DemoSendStatus = "done" | "pending" | "cancel";
 export type DemoPaymentMethod = "bkash" | "nagad" | "others";
@@ -115,7 +116,7 @@ export function generateDemoCoinRequests(
 
     rows.push({
       user_id: userId,
-      request_id: String(i).padStart(6, "0"),
+      request_id: String(i),
       who_requested: pick(REQUESTERS, i),
       price: seededPrice(coin_amount, i),
       coin_amount,
@@ -134,9 +135,7 @@ export function generateDemoCoinRequests(
 export const DEMO_REQUEST_COUNT = 200;
 
 export function getDemoRequestIds(count = DEMO_REQUEST_COUNT): string[] {
-  return Array.from({ length: count }, (_, i) =>
-    String(i + 1).padStart(6, "0")
-  );
+  return Array.from({ length: count }, (_, i) => String(i + 1));
 }
 
 export function summarizeDemoRows(rows: DemoCoinRequest[]) {

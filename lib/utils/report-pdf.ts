@@ -33,15 +33,15 @@ interface TableColumn {
 }
 
 const TABLE_COLUMNS: TableColumn[] = [
-  { label: "ID", width: 40 },
-  { label: "Requested By", width: 84 },
-  { label: "Price", width: 52, align: "right" },
-  { label: "Coins", width: 46, align: "right" },
-  { label: "Price/lac", width: 50, align: "right" },
-  { label: "Payment", width: 48 },
-  { label: "Send", width: 40 },
-  { label: "Method", width: 48 },
-  { label: "Created", width: 91 },
+  { label: "ID", width: 100 },
+  { label: "Requested By", width: 68 },
+  { label: "Price", width: 48, align: "right" },
+  { label: "Coins", width: 42, align: "right" },
+  { label: "Price/lac", width: 46, align: "right" },
+  { label: "Payment", width: 44 },
+  { label: "Send", width: 36 },
+  { label: "Method", width: 44 },
+  { label: "Created", width: 83 },
 ];
 
 function formatCurrency(value: number): string {
@@ -97,7 +97,7 @@ function buildFilterLines(report: CoinRequestReport): string[] {
     lines.push(`Period: ${range.replace(/\u2013/g, "-")}`);
   }
   if (report.filters.requestId) {
-    lines.push(`Request ID: ${report.filters.requestId.padStart(6, "0")}`);
+    lines.push(`Request ID: ${report.filters.requestId}`);
   }
   if (report.filters.whoRequested) {
     lines.push(`Requested by: ${report.filters.whoRequested}`);

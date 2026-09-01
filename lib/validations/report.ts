@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REQUEST_ID_LENGTH } from "@/lib/utils/request-id";
 
 export const coinRequestReportQuerySchema = z.object({
   date_from: z
@@ -11,7 +12,10 @@ export const coinRequestReportQuerySchema = z.object({
     .optional(),
   request_id: z
     .string()
-    .regex(/^\d{1,6}$/, "Request ID must be up to 6 digits")
+    .regex(
+      new RegExp(`^\\d{1,${REQUEST_ID_LENGTH}}$`),
+      `Request ID must be up to ${REQUEST_ID_LENGTH} digits`
+    )
     .optional(),
   who_requested: z.string().max(255).optional(),
 });

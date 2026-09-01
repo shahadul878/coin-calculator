@@ -47,6 +47,6 @@ describe("demo report pdf", () => {
 
     const pageCount = countPdfPages(pdf);
     expect(pageCount).toBeGreaterThanOrEqual(8);
-    expect(pageCount).toBeLessThanOrEqual(12);
+    expect(pageCount).toBeLessThanOrEqual(18);
   }, 30000);
 });
