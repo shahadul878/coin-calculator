@@ -5,7 +5,6 @@ import {
   unauthorizedError,
   validationError,
   notFoundError,
-  conflictError,
   serverError,
 } from "@/lib/utils/api-response";
 import { coinRequestUpdateSchema } from "@/lib/validations";
@@ -53,9 +52,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       const data = await updateCoinRequest(id, user.id, parsed.data, { adminScope });
       return successResponse(data);
     } catch (err) {
-      if (err instanceof Error) {
-        if (err.message === "Coin request not found") return notFoundError("Coin request");
-        if (err.message === "DUPLICATE_REQUEST_ID") return conflictError("Request ID already exists");
+      if (err instanceof Error && err.message === "Coin request not found") {
+        return notFoundError("Coin request");
       }
       throw err;
     }

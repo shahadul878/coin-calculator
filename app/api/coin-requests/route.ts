@@ -4,7 +4,6 @@ import {
   successResponse,
   unauthorizedError,
   validationError,
-  conflictError,
   serverError,
 } from "@/lib/utils/api-response";
 import { coinRequestSchema } from "@/lib/validations";
@@ -53,15 +52,8 @@ export async function POST(request: NextRequest) {
       return validationError(parsed.error.issues[0]?.message ?? "Validation failed");
     }
 
-    try {
-      const data = await createCoinRequest(user.id, parsed.data);
-      return successResponse(data, 201);
-    } catch (err) {
-      if (err instanceof Error && err.message === "DUPLICATE_REQUEST_ID") {
-        return conflictError("Request ID already exists");
-      }
-      throw err;
-    }
+    const data = await createCoinRequest(user.id, parsed.data);
+    return successResponse(data, 201);
   } catch {
     return serverError();
   }

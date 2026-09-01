@@ -130,17 +130,6 @@ export async function createCoinRequest(
   const supabase = await createClient();
   const paymentFields = normalizePaymentFields(input);
 
-  const { data: existing } = await supabase
-    .from("coin_requests")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("request_id", input.request_id)
-    .maybeSingle();
-
-  if (existing) {
-    throw new Error("DUPLICATE_REQUEST_ID");
-  }
-
   const { data, error } = await supabase
     .from("coin_requests")
     .insert({
@@ -189,8 +178,6 @@ export async function updateCoinRequest(
   const existing = await getCoinRequest(id, userId, options);
   if (!existing) throw new Error("Coin request not found");
 
-  const ownerUserId = existing.user_id;
-
   const merged: CoinRequestInput = {
     request_id: input.request_id ?? existing.request_id,
     who_requested: input.who_requested ?? existing.who_requested,
@@ -204,18 +191,6 @@ export async function updateCoinRequest(
     txn_id: input.txn_id ?? existing.txn_id,
     notes: input.notes !== undefined ? input.notes : existing.notes,
   };
-
-  if (input.request_id && input.request_id !== existing.request_id) {
-    const { data: duplicate } = await supabase
-      .from("coin_requests")
-      .select("id")
-      .eq("user_id", ownerUserId)
-      .eq("request_id", input.request_id)
-      .neq("id", id)
-      .maybeSingle();
-
-    if (duplicate) throw new Error("DUPLICATE_REQUEST_ID");
-  }
 
   const paymentFields = normalizePaymentFields(merged);
 

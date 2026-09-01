@@ -23,7 +23,6 @@ export default async function NewCoinRequestPage({ searchParams }: PageProps) {
     if (source) {
       initialData = {
         ...source,
-        request_id: "",
         payment_status: "due",
         send_status: "pending",
         payment_method: null,
@@ -39,7 +38,7 @@ export default async function NewCoinRequestPage({ searchParams }: PageProps) {
         title={duplicateFrom ? "Duplicate Coin Request" : "New Coin Request"}
         description={
           duplicateFrom
-            ? "Enter a new request ID and save the duplicated request"
+            ? "Fields are copied from the original request — the same app user ID can be reused"
             : "Create a new coin request"
         }
       />
